@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BetterSociety | Multi-Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #8b5cf6; }
+        body { cursor: none; background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        
+        .custom-cursor { position: fixed; width: 8px; height: 8px; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); }
+        .cursor-dot { width: 100%; height: 100%; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px rgba(139, 92, 246, 0.8); transition: transform 0.15s ease; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Utility Card Style */
+        .utility-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            transition: all 0.3s ease;
+        }
+        .utility-card:hover {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 10000; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+
+    <div id="customCursor" class="custom-cursor"><div class="cursor-dot" id="cursorDot"></div></div>
+
+    <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-black/80 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="showTab('home')">
+                <div class="w-6 h-6 rounded bg-[#8b5cf6] flex items-center justify-center text-xs font-bold text-white">B</div>
+                <span class="text-xl font-semibold text-white tracking-tighter">BetterSociety</span>
+            </div>
+            <div class="hidden md:flex gap-8 text-sm text-neutral-400">
+                <button onclick="showTab('utility')" class="hover:text-[#8b5cf6] transition-colors">Utility GUI</button>
+                <button onclick="showTab('pricing')" class="hover:text-[#8b5cf6] transition-colors">Pricing</button>
+            </div>
+            <button onclick="openModal()" class="px-5 py-2 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-sm font-semibold rounded-full transition-all">Purchase</button>
+        </div>
+    </nav>
+
+    <main class="pt-24 min-h-screen">
+        
+        <section id="home" class="tab-content active text-center px-6 pt-20">
+            <h1 class="text-6xl font-bold mb-6">BetterSociety <span class="text-[#8b5cf6]">Multi-Tool</span></h1>
+            <p class="text-neutral-400 max-w-2xl mx-auto mb-10">Cross-platform power for Windows & Linux users.</p>
+            <button onclick="showTab('utility')" class="px-8 py-4 bg-[#8b5cf6] rounded-2xl font-bold shadow-lg shadow-[#8b5cf6]/20">Open Dashboard</button>
+        </section>
+
+        <section id="utility" class="tab-content max-w-5xl mx-auto px-6 py-10">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold">Utility <span class="text-[#8b5cf6]">Dashboard</span></h2>
+                <span class="text-xs bg-white/5 border border-white/10 px-3 py-1 rounded-full text-neutral-500 uppercase tracking-widest">v3.0.4 Online</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="utility-card p-6 rounded-2xl">
+                    <div class="w-10 h-10 bg-[#8b5cf6]/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Performance Boost</h3>
+                    <p class="text-sm text-neutral-500 mb-4">Optimizes system kernel for zero-latency tasks.</p>
+                    <button class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all uppercase tracking-tighter">Execute</button>
+                </div>
+
+                <div class="utility-card p-6 rounded-2xl">
+                    <div class="w-10 h-10 bg-[#8b5cf6]/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Security Shield</h3>
+                    <p class="text-sm text-neutral-500 mb-4">Bypasses system restrictions on Linux/Windows.</p>
+                    <button class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all uppercase tracking-tighter">Enable</button>
+                </div>
+
+                <div class="utility-card p-6 rounded-2xl">
+                    <div class="w-10 h-10 bg-[#8b5cf6]/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">System Analytics</h3>
+                    <p class="text-sm text-neutral-500 mb-4">View real-time hardware and network logs.</p>
+                    <button class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all uppercase tracking-tighter">View Data</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="tab-content text-center px-6 py-20">
+            <h2 class="text-4xl font-bold mb-4">Simple <span class="text-[#8b5cf6]">Access</span></h2>
+            <div class="max-w-sm mx-auto bg-neutral-900 border border-[#8b5cf6]/30 p-8 rounded-3xl mt-10">
+                <span class="text-[#8b5cf6] font-bold text-sm tracking-widest uppercase">Lifetime License</span>
+                <div class="text-5xl font-black my-4">$14.99</div>
+                <p class="text-neutral-400 text-sm mb-8">One-time payment. All platforms included.</p>
+                <button onclick="openModal()" class="w-full py-4 bg-[#8b5cf6] rounded-2xl font-bold hover:scale-[1.02] transition-transform">Get Access Now</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="purchaseModal" class="modal-overlay">
+        <div class="bg-[#0a0a0a] border border-[#8b5cf6]/40 p-10 rounded-[32px] max-w-md w-full text-center mx-6">
+            <h3 class="text-2xl font-bold mb-4">Join the Society</h3>
+            <p class="text-neutral-400 mb-8">Redirecting to our secure Discord server for key generation.</p>
+            <a href="#" class="block w-full py-4 bg-[#5865F2] rounded-2xl font-bold mb-4">Continue to Discord</a>
+            <button onclick="closeModal()" class="text-neutral-500 text-sm hover:text-white transition-colors">Go Back</button>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching logic
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        // Modal logic
+        function openModal() { document.getElementById('purchaseModal').classList.add('active'); }
+        function closeModal() { document.getElementById('purchaseModal').classList.remove('active'); }
+
+        // Cursor logic
+        document.addEventListener('mousemove', e => {
+            const cursor = document.getElementById('customCursor');
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+</html>
