@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BetterSociety | Mobile</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #8b5cf6; }
@@ -56,15 +57,53 @@
             padding: 20px;
         }
 
-        /* The stylized B logo shadow */
         .logo-glow {
             text-shadow: 0 0 12px rgba(139, 92, 246, 0.8);
         }
+
+        /* NEW AUTH STYLES */
+        #auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: #050505;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            transition: transform 0.6s cubic-bezier(0.87, 0, 0.13, 1);
+        }
+        #auth-overlay.hidden { transform: translateY(-100%); }
+        .auth-input {
+            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 16px; border-radius: 16px; color: white; font-size: 14px; outline: none;
+            transition: border 0.3s;
+        }
+        .auth-input:focus { border-color: #8b5cf6; }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-24 overflow-hidden"> <canvas id="matrix-canvas"></canvas>
 
-    <canvas id="matrix-canvas"></canvas>
+    <div id="auth-overlay">
+        <div class="w-full max-w-sm space-y-8 relative z-[1001]">
+            <div class="text-center">
+                <div class="w-16 h-16 rounded-2xl bg-[#8b5cf6] mx-auto flex items-center justify-center text-3xl font-black text-white shadow-[0_0_30px_rgba(139,92,246,0.5)] mb-6">B</div>
+                <h2 id="auth-title" class="text-3xl font-extrabold text-white tracking-tight">Create Account</h2>
+                <p id="auth-sub" class="text-neutral-500 text-sm mt-2">Sign up to access BetterSociety modules.</p>
+            </div>
+
+            <div class="space-y-4">
+                <input type="email" id="auth-email" placeholder="Email Address" class="auth-input">
+                <input type="password" id="auth-password" placeholder="Password" class="auth-input">
+                <button onclick="handleAuth()" id="auth-submit-btn" class="w-full bg-[#8b5cf6] py-4 rounded-2xl font-bold text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] active:scale-95 transition-transform">Continue</button>
+            </div>
+
+            <p class="text-center text-xs text-neutral-500">
+                <span id="auth-toggle-text">Already have an account?</span> 
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-[#8b5cf6] font-bold ml-1">Login</button>
+            </p>
+        </div>
+    </div>
 
     <div id="checkout-modal">
         <div class="mobile-card w-full max-w-sm p-8 rounded-[32px] border-t-4 border-t-[#00d632] animate-[slideBounce_0.4s_ease-out]">
@@ -208,6 +247,58 @@
     </nav>
 
     <script>
+        // --- SUPABASE CONFIG ---
+// Use the API URL from Settings > API, NOT the dashboard URL
+const SUPABASE_URL = 'https://tfxwsnsddqwojyzrxemd.supabase.co'; 
+const SUPABASE_KEY = 'sb_publishable_CEnR0Y_yHyjMaVoLr8QgvQ_0dplRitn';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let isLoginMode = false;
+
+        // --- AUTH FUNCTIONS ---
+        async function handleAuth() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const btn = document.getElementById('auth-submit-btn');
+
+            if (!email || !password) return alert("Fill out all fields.");
+            
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            if (isLoginMode) {
+                // LOGIN
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) { alert(error.message); btn.innerText = "Login"; btn.disabled = false; }
+            } else {
+                // REGISTER
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) { alert(error.message); btn.innerText = "Create Account"; btn.disabled = false; }
+                else { alert("Account created! Log in to continue."); toggleAuthMode(); btn.innerText = "Continue"; btn.disabled = false; }
+            }
+        }
+
+        // Listen for auth state changes
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            } else {
+                document.getElementById('auth-overlay').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? 'Login' : 'Create Account';
+            document.getElementById('auth-sub').innerText = isLoginMode ? 'Welcome back, member.' : 'Sign up to access BetterSociety modules.';
+            document.getElementById('auth-toggle-text').innerText = isLoginMode ? "Don't have an account?" : "Already have an account?";
+            document.getElementById('auth-toggle-btn').innerText = isLoginMode ? 'Sign Up' : 'Login';
+            document.getElementById('auth-submit-btn').innerText = isLoginMode ? 'Login' : 'Create Account';
+        }
+
+        // --- EXISTING UI FUNCTIONS ---
         function openModal() { document.getElementById('checkout-modal').style.display = 'flex'; }
         function closeModal() { document.getElementById('checkout-modal').style.display = 'none'; }
 
@@ -225,6 +316,7 @@
             event.currentTarget.classList.replace('text-neutral-500', 'text-[#8b5cf6]');
         }
 
+        // --- MATRIX ANIMATION ---
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
