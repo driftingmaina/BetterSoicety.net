@@ -61,7 +61,6 @@
             text-shadow: 0 0 12px rgba(139, 92, 246, 0.8);
         }
 
-        /* NEW AUTH STYLES */
         #auth-overlay {
             position: fixed;
             inset: 0;
@@ -82,7 +81,8 @@
         .auth-input:focus { border-color: #8b5cf6; }
     </style>
 </head>
-<body class="pb-24 overflow-hidden"> <canvas id="matrix-canvas"></canvas>
+<body class="pb-24 overflow-hidden"> 
+    <canvas id="matrix-canvas"></canvas>
 
     <div id="auth-overlay">
         <div class="w-full max-w-sm space-y-8 relative z-[1001]">
@@ -126,21 +126,20 @@
 
     <header class="fixed top-0 w-full z-50 border-b border-white/5 nav-blur px-6 py-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-[#8b5cf6] flex items-center justify-center text-xl font-black text-white shadow-[0_0_15px_rgba(139,92,246,0.5)] logo-glow">
-                B
-            </div>
+            <div class="w-8 h-8 rounded-lg bg-[#8b5cf6] flex items-center justify-center text-xl font-black text-white shadow-[0_0_15px_rgba(139,92,246,0.5)] logo-glow">B</div>
             <span class="font-bold tracking-tighter text-white text-lg">BetterSociety</span>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="text-[10px] text-emerald-500 font-bold uppercase tracking-tighter">Live</span>
-            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></div>
+        <div class="flex items-center gap-4">
+            <button onclick="handleLogout()" class="text-[10px] text-red-500 font-bold uppercase tracking-tighter hover:opacity-70">Logout</button>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] text-emerald-500 font-bold uppercase tracking-tighter">Live</span>
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></div>
+            </div>
         </div>
     </header>
 
     <main class="pt-24 px-4 relative z-10">
-        
         <section id="home" class="tab-content active text-center py-4">
-            
             <div class="ascii-container">
 +===============================================================================+
 |                                                                               |
@@ -151,7 +150,7 @@
 |   ▄███▄▄▄██▀    ▄███▄▄▄          ███    ▀      ███    ▀  ▄███▄▄▄       ▄███▄▄▄▄██▀  |
 |  ▀▀███▀▀▀██▄   ▀▀███▀▀▀          ███          ███     ▀▀███▀▀▀      ▀▀███▀▀▀▀▀    |
 |    ███    ██▄    ███    █▄       ███          ███       ███    █▄  ▀███████████  |
-|    ███    ███    ███    ███      ███          ███       ███    ███    ███    ███  |
+|    ███    ███    ███    ███       ███          ███       ███    ███    ███    ███  |
 |  ▄█████████▀     ██████████    ▄████▀      ▄████▀      ██████████    ███    ███  |
 |                                                                      ███    ███  |
 |      ▄████████  ▄██████▄    ▄████████  ▄█      ▄████████      ███      ▄██   ▄      |
@@ -160,7 +159,7 @@
 |     ███        ███    ███ ███        ███▌  ▄███▄▄▄          ███    ▀ ▀▀▀▀▀▀███   |
 |  ▀███████████ ███    ███ ███        ███▌ ▀▀███▀▀▀          ███      ▄██   ███   |
 |            ███ ███    ███ ███    █▄  ███     ███    █▄       ███      ███   ███   |
-|      ▄█    ███ ███    ███ ███    ███ ███     ███    ███      ███      ███   ███   |
+|      ▄█    ███ ███    ███ ███    ███ ███     ███    ███       ███      ███   ███   |
 |    ▄████████▀   ▀██████▀  ████████▀  █▀      ██████████     ▄████▀    ▀█████▀    |
 |                                                                               |
 |                                                                               |
@@ -182,7 +181,7 @@
                     <p class="italic border-b border-gray-800 pb-2 text-gray-400">This software is provided "as is" without warranty of any kind.</p>
                     <p><span class="text-[#8b5cf6] font-bold">1. No Responsibility:</span> I, BetterSociety, am not responsible for any damage, data loss, or legal trouble caused by the use or misuse of this tool.</p>
                     <p><span class="text-[#8b5cf6] font-bold">2. User Risk:</span> Any actions you take using this software are 100% your own responsibility.</p>
-                    <p><span class="text-[#8b5cf6] font-bold">3. Educational Only:</span> This project is for research and educational purposes. Do not use it on networks or hardware you do not own or have explicit permission to test.</p>
+                    <p><span class="text-[#8b5cf6] font-bold">3. Educational Only:</span> This project is for research and educational purposes.</p>
                     <p class="pt-3 border-t border-gray-800 font-bold text-red-500 uppercase tracking-tight text-center">If you do something stupid or illegal, it's on you.</p>
                 </div>
             </div>
@@ -248,10 +247,9 @@
 
     <script>
         // --- SUPABASE CONFIG ---
-// Use the API URL from Settings > API, NOT the dashboard URL
-const SUPABASE_URL = 'https://tfxwsnsddqwojyzrxemd.supabase.co'; 
-const SUPABASE_KEY = 'sb_publishable_CEnR0Y_yHyjMaVoLr8QgvQ_0dplRitn';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_URL = 'https://tfxwsnsddqwojyzrxemd.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_CEnR0Y_yHyjMaVoLr8QgvQ_0dplRitn';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let isLoginMode = false;
 
@@ -267,18 +265,32 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             btn.disabled = true;
 
             if (isLoginMode) {
-                // LOGIN
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) { alert(error.message); btn.innerText = "Login"; btn.disabled = false; }
+                if (error) { 
+                    alert(error.message); 
+                    btn.innerText = "Login"; 
+                    btn.disabled = false; 
+                }
             } else {
-                // REGISTER
                 const { data, error } = await supabaseClient.auth.signUp({ email, password });
-                if (error) { alert(error.message); btn.innerText = "Create Account"; btn.disabled = false; }
-                else { alert("Account created! Log in to continue."); toggleAuthMode(); btn.innerText = "Continue"; btn.disabled = false; }
+                if (error) { 
+                    alert(error.message); 
+                    btn.innerText = "Create Account"; 
+                    btn.disabled = false; 
+                } else { 
+                    alert("Success! Please log in now."); 
+                    toggleAuthMode(); 
+                    btn.innerText = "Login"; 
+                    btn.disabled = false; 
+                }
             }
         }
 
-        // Listen for auth state changes
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+        }
+
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (session) {
                 document.getElementById('auth-overlay').classList.add('hidden');
@@ -298,7 +310,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             document.getElementById('auth-submit-btn').innerText = isLoginMode ? 'Login' : 'Create Account';
         }
 
-        // --- EXISTING UI FUNCTIONS ---
         function openModal() { document.getElementById('checkout-modal').style.display = 'flex'; }
         function closeModal() { document.getElementById('checkout-modal').style.display = 'none'; }
 
@@ -316,7 +327,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             event.currentTarget.classList.replace('text-neutral-500', 'text-[#8b5cf6]');
         }
 
-        // --- MATRIX ANIMATION ---
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -340,4 +350,4 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         setInterval(drawMatrix, 45);
     </script>
 </body>
-</html>  
+</html>   
