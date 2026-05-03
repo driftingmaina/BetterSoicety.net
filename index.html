@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BetterSociety | Mobile</title>
+    <title>BetterSociety | Applications</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #8b5cf6; }
@@ -45,154 +44,71 @@
             border: 1px solid rgba(139, 92, 246, 0.1);
         }
 
-        #checkout-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .logo-glow {
-            text-shadow: 0 0 12px rgba(139, 92, 246, 0.8);
-        }
-
-        #auth-overlay {
-            position: fixed;
-            inset: 0;
-            background: #050505;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            transition: transform 0.6s cubic-bezier(0.87, 0, 0.13, 1);
-        }
-        #auth-overlay.hidden { transform: translateY(-100%); }
-        .auth-input {
+        .app-input {
             width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(139, 92, 246, 0.2);
-            padding: 16px; border-radius: 16px; color: white; font-size: 14px; outline: none;
+            padding: 14px; border-radius: 12px; color: white; font-size: 14px; outline: none;
             transition: border 0.3s;
         }
-        .auth-input:focus { border-color: #8b5cf6; }
+        .app-input:focus { border-color: #8b5cf6; }
+
+        .file-label {
+            display: block; width: 100%; background: rgba(139, 92, 246, 0.1); border: 2px dashed rgba(139, 92, 246, 0.3);
+            padding: 20px; border-radius: 16px; color: #8b5cf6; text-align: center; cursor: pointer;
+            font-size: 12px; font-weight: 800; text-transform: uppercase; transition: all 0.3s;
+        }
+        .file-label:hover { background: rgba(139, 92, 246, 0.2); border-color: #8b5cf6; }
+
+        .req-item { display: flex; align-items: start; gap: 12px; margin-bottom: 12px; }
+        .req-dot { width: 6px; height: 6px; background: #ef4444; border-radius: 50%; margin-top: 6px; box-shadow: 0 0 8px #ef4444; }
+
+        .logo-glow { text-shadow: 0 0 12px rgba(139, 92, 246, 0.8); }
     </style>
 </head>
-<body class="pb-24 overflow-hidden"> 
+<body class="pb-24"> 
     <canvas id="matrix-canvas"></canvas>
-
-    <div id="auth-overlay">
-        <div class="w-full max-w-sm space-y-8 relative z-[1001]">
-            <div class="text-center">
-                <div class="w-16 h-16 rounded-2xl bg-[#8b5cf6] mx-auto flex items-center justify-center text-3xl font-black text-white shadow-[0_0_30px_rgba(139,92,246,0.5)] mb-6">B</div>
-                <h2 id="auth-title" class="text-3xl font-extrabold text-white tracking-tight">Create Account</h2>
-                <p id="auth-sub" class="text-neutral-500 text-sm mt-2">Sign up to access BetterSociety modules.</p>
-            </div>
-
-            <div class="space-y-4">
-                <input type="email" id="auth-email" placeholder="Email Address" class="auth-input">
-                <input type="password" id="auth-password" placeholder="Password" class="auth-input">
-                <button onclick="handleAuth()" id="auth-submit-btn" class="w-full bg-[#8b5cf6] py-4 rounded-2xl font-bold text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] active:scale-95 transition-transform">Continue</button>
-            </div>
-
-            <p class="text-center text-xs text-neutral-500">
-                <span id="auth-toggle-text">Already have an account?</span> 
-                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-[#8b5cf6] font-bold ml-1">Login</button>
-            </p>
-        </div>
-    </div>
-
-    <div id="checkout-modal">
-        <div class="mobile-card w-full max-w-sm p-8 rounded-[32px] border-t-4 border-t-[#00d632] animate-[slideBounce_0.4s_ease-out]">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 bg-[#00d632] rounded-full flex items-center justify-center text-white font-bold text-xl">$</div>
-                <h2 class="text-2xl font-black text-white">Cash App</h2>
-            </div>
-            <p class="text-xs text-neutral-400 mb-6 uppercase tracking-widest font-bold">Total: $14.99</p>
-            <div class="space-y-4">
-                <div class="bg-black/40 p-4 rounded-2xl border border-white/5">
-                    <p class="text-sm text-gray-300">1. Click 'Pay Now'<br>2. Complete payment to <strong>$YourTag</strong><br>3. DM screenshot for access.</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="closeModal()" class="flex-1 bg-neutral-800 py-4 rounded-xl font-bold text-xs text-white">Cancel</button>
-                    <button onclick="window.open('https://cash.app/$YourTag/14.99', '_blank')" class="flex-1 bg-[#00d632] py-4 rounded-xl font-bold text-xs text-white">Pay Now</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <header class="fixed top-0 w-full z-50 border-b border-white/5 nav-blur px-6 py-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-[#8b5cf6] flex items-center justify-center text-xl font-black text-white shadow-[0_0_15px_rgba(139,92,246,0.5)] logo-glow">B</div>
             <span class="font-bold tracking-tighter text-white text-lg">BetterSociety</span>
         </div>
-        <div class="flex items-center gap-4">
-            <button onclick="handleLogout()" class="text-[10px] text-red-500 font-bold uppercase tracking-tighter hover:opacity-70">Logout</button>
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] text-emerald-500 font-bold uppercase tracking-tighter">Live</span>
-                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></div>
-            </div>
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] text-emerald-500 font-bold uppercase tracking-tighter">Applications Open</span>
+            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></div>
         </div>
     </header>
 
     <main class="pt-24 px-4 relative z-10">
+        <!-- HOME SECTION -->
         <section id="home" class="tab-content active text-center py-4">
             <div class="ascii-container">
-+===============================================================================+
-|                                                                               |
-|                                                                               |
-|  ▀█████████▄      ▄████████      ███          ███         ▄████████    ▄████████  |
-|    ███    ███    ███    ███ ▀█████████▄ ▀█████████▄    ███    ███    ███    ███  |
-|    ███    ███    ███    █▀     ▀███▀▀██    ▀███▀▀██    ███    █▀     ███    ███  |
-|   ▄███▄▄▄██▀    ▄███▄▄▄          ███    ▀      ███    ▀  ▄███▄▄▄       ▄███▄▄▄▄██▀  |
-|  ▀▀███▀▀▀██▄   ▀▀███▀▀▀          ███          ███     ▀▀███▀▀▀      ▀▀███▀▀▀▀▀    |
-|    ███    ██▄    ███    █▄       ███          ███       ███    █▄  ▀███████████  |
-|    ███    ███    ███    ███       ███          ███       ███    ███    ███    ███  |
-|  ▄█████████▀     ██████████    ▄████▀      ▄████▀      ██████████    ███    ███  |
-|                                                                      ███    ███  |
-|      ▄████████  ▄██████▄    ▄████████  ▄█      ▄████████      ███      ▄██   ▄      |
-|     ███    ███ ███    ███ ███    ███ ███     ███    ███ ▀█████████▄ ███    ██▄   |
-|     ███    █▀  ███    ███ ███    █▀  ███▌    ███    █▀      ▀███▀▀██ ███▄▄▄███   |
-|     ███        ███    ███ ███        ███▌  ▄███▄▄▄          ███    ▀ ▀▀▀▀▀▀███   |
-|  ▀███████████ ███    ███ ███        ███▌ ▀▀███▀▀▀          ███      ▄██   ███   |
-|            ███ ███    ███ ███    █▄  ███     ███    █▄       ███      ███   ███   |
-|      ▄█    ███ ███    ███ ███    ███ ███     ███    ███       ███      ███   ███   |
-|    ▄████████▀   ▀██████▀  ████████▀  █▀      ██████████     ▄████▀    ▀█████▀    |
-|                                                                               |
-|                                                                               |
-+===============================================================================+
+▀█████████▄     ▄████████      ███          ███         ▄████████    ▄████████    ▄████████  ▄██████▄   ▄████████  ▄█     ▄████████     ███     ▄██   ▄   
+  ███    ███   ███    ███ ▀█████████▄ ▀█████████▄   ███    ███   ███    ███   ███    ███ ███    ███ ███    ███ ███    ███    ███ ▀█████████▄ ███   ██▄ 
+  ███    ███   ███    █▀      ▀███▀▀██    ▀███▀▀██   ███    █▀    ███    ███   ███    █▀  ███    ███ ███    █▀  ███▌   ███    █▀      ▀███▀▀██ ███▄▄▄███ 
+ ▄███▄▄▄██▀    ▄███▄▄▄          ███    ▀      ███    ▀  ▄███▄▄▄       ▄███▄▄▄▄██▀   ███        ███    ███ ███        ███▌  ▄███▄▄▄          ███    ▀ ▀▀▀▀▀▀███ 
+▀▀███▀▀▀██▄   ▀▀███▀▀▀          ███          ███     ▀▀███▀▀▀      ▀▀███▀▀▀▀▀    ▀███████████ ███    ███ ███        ███▌ ▀▀███▀▀▀          ███     ▄██   ███ 
+  ███    ██▄   ███    █▄       ███          ███        ███    █▄  ▀███████████           ███ ███    ███ ███    █▄  ███    ███    █▄       ███     ███   ███ 
+  ███    ███   ███    ███       ███          ███        ███    ███   ███    ███     ▄█    ███ ███    ███ ███    ███ ███    ███    ███       ███     ███   ███ 
+▄█████████▀     ██████████    ▄████▀      ▄████▀      ██████████   ███    ███   ▄████████▀   ▀██████▀  ████████▀  █▀     ██████████    ▄████▀     ▀█████▀  
+                                                                   ███    ███                                                                        
             </div>
 
-            <h1 class="text-4xl font-extrabold mb-4 leading-tight text-white">Best MultiTool</h1>
-            <p class="text-neutral-500 text-sm mb-8 px-4">best cybersec tool..</p>
+            <h1 class="text-4xl font-extrabold mb-4 leading-tight text-white">Join the Society</h1>
+            <p class="text-neutral-500 text-sm mb-8 px-4">Submit your evidence and skillset to gain entry.</p>
             
             <div class="mobile-card p-6 rounded-3xl text-left border-l-4 border-l-[#8b5cf6] mb-4">
                 <p class="text-[10px] uppercase tracking-widest text-[#8b5cf6] font-bold mb-1">Status</p>
-                <p class="text-lg font-bold">V0.0.1 - Tool</p>
+                <p class="text-lg font-bold">V1.33 - Evidence Required</p>
             </div>
 
-            <button onclick="window.open('https://discord.gg/AutQfZ8qa2', '_blank')" class="w-full mb-4 bg-[#5865F2] py-4 rounded-2xl font-bold flex items-center justify-center gap-3 text-white shadow-[0_0_20px_rgba(88,101,242,0.4)] active:scale-95 transition-all">
-                Join My Discord
+            <button onclick="showTab('apply')" class="w-full mb-4 bg-[#8b5cf6] py-4 rounded-2xl font-bold flex items-center justify-center gap-3 text-white shadow-[0_0_20px_rgba(139,92,246,0.4)] active:scale-95 transition-all">
+                Start Application
             </button>
-
-            <div class="mobile-card p-6 rounded-3xl text-left border-l-4 border-l-[#8b5cf6] bg-[#1a1a1a]">
-                <p class="text-[10px] uppercase tracking-widest text-[#8b5cf6] font-bold mb-2">Disclaimer</p>
-                <h2 class="text-xl font-extrabold mb-3 text-white">Disclaimer & No Liability</h2>
-                <div class="text-sm text-gray-300 space-y-3">
-                    <p class="italic border-b border-gray-800 pb-2 text-gray-400">This software is provided "as is" without warranty of any kind.</p>
-                    <p><span class="text-[#8b5cf6] font-bold">1. No Responsibility:</span> I, BetterSociety, am not responsible for any damage, data loss, or legal trouble caused by the use or misuse of this tool.</p>
-                    <p><span class="text-[#8b5cf6] font-bold">2. User Risk:</span> Any actions you take using this software are 100% your own responsibility.</p>
-                    <p><span class="text-[#8b5cf6] font-bold">3. Educational Only:</span> This project is for research and educational purposes.</p>
-                    <p class="pt-3 border-t border-gray-800 font-bold text-red-500 uppercase tracking-tight text-center">If you do something stupid or illegal, it's on you.</p>
-                </div>
-            </div>
         </section>
 
+        <!-- UTILITY / FEATURES SECTION -->
         <section id="utility" class="tab-content py-6">
-            <h2 class="text-2xl font-bold mb-6 text-white">Features</h2>
+            <h2 class="text-2xl font-bold mb-6 text-white">Society Modules</h2>
             <div class="space-y-4">
                 <div class="mobile-card p-5 rounded-2xl flex items-center justify-between">
                     <div class="flex items-center gap-4">
@@ -200,138 +116,154 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </div>
                         <div>
-                            <p class="font-bold text-sm text-white">Made for win/linx</p>
-                            <p class="text-[10px] text-neutral-500 uppercase">Operating</p>
+                            <p class="font-bold text-sm text-white">Better Society Tool</p>
+                            <p class="text-[10px] text-neutral-500 uppercase">Python Framework</p>
                         </div>
-                    </div>
-                    <button class="bg-[#8b5cf6] text-[10px] font-bold px-4 py-2 rounded-lg text-white uppercase">opt</button>
-                </div>
-
-                <div class="mobile-card p-5 rounded-2xl flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-[#8b5cf6]/20 rounded-xl flex items-center justify-center text-[#8b5cf6]">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-width="2" stroke-linecap="round"/></svg>
-                        </div>
-                        <div>
-                            <p class="font-bold text-sm text-white">ddos Attack</p>
-                            <p class="text-[10px] text-neutral-500 uppercase">botnet</p>
-                        </div>
-                    </div>
-                    <div class="w-10 h-5 bg-neutral-800 rounded-full relative">
-                        <div class="absolute right-1 top-1 w-3 h-3 bg-[#8b5cf6] rounded-full"></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="pricing" class="tab-content py-10 text-center">
-            <h2 class="text-3xl font-bold mb-8 text-white">Lifetime</h2>
-            <div class="mobile-card p-10 rounded-[40px] border-2 border-[#8b5cf6]">
-                <div class="text-5xl font-black mb-2 text-white">$14.99</div>
-                <p class="text-neutral-500 text-xs mb-8">No monthly fees. Forever access.</p>
-                <button onclick="openModal()" class="w-full bg-[#8b5cf6] py-4 rounded-2xl font-bold active:scale-95 transition-transform text-white shadow-[0_0_15px_rgba(139,92,246,0.3)]">Purchase Access</button>
+        <!-- APPLICATION SECTION -->
+        <section id="apply" class="tab-content py-6">
+            <h2 class="text-3xl font-bold mb-2 text-white">Application</h2>
+            
+            <!-- Requirements Card -->
+            <div class="mobile-card p-5 rounded-2xl border-dashed border-red-500/30 mb-6 bg-red-500/5">
+                <p class="text-[10px] uppercase text-red-500 font-black mb-3 tracking-[0.2em]">Mandatory Requirements</p>
+                <div class="req-item">
+                    <div class="req-dot"></div>
+                    <p class="text-xs text-neutral-300">Must have verifiable experience with social engineering and extorting.</p>
+                </div>
+                <div class="req-item">
+                    <div class="req-dot"></div>
+                    <p class="text-xs text-neutral-300">Accepted members **must** add "BS" to their name if accepted.</p>
+                </div>
+            </div>
+
+            <div class="mobile-card p-6 rounded-[32px] space-y-4">
+                <div>
+                    <label class="text-[10px] uppercase text-neutral-500 font-bold ml-1">Username</label>
+                    <input type="text" id="app-discord" placeholder="MoonBs" class="app-input">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase text-neutral-500 font-bold ml-1">Primary Skillset</label>
+                    <input type="text" id="app-skills" placeholder="Python, extorting, Hardware..." class="app-input">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase text-neutral-500 font-bold ml-1">Reason for joining</label>
+                    <textarea id="app-reason" rows="4" placeholder="How will you contribute?" class="app-input resize-none"></textarea>
+                </div>
+                
+                <div>
+                    <label class="text-[10px] uppercase text-neutral-500 font-bold ml-1 mb-2 block">Upload Proof that you can do that stuff (Image)</label>
+                    <input type="file" id="app-proof" accept="image/*" class="hidden">
+                    <label for="app-proof" id="file-label" class="file-label">
+                        Click to upload proof
+                    </label>
+                </div>
+
+                <button onclick="submitApplication()" id="submit-btn" class="w-full bg-[#8b5cf6] py-4 rounded-2xl font-bold text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] active:scale-95 transition-all">Submit to Review</button>
             </div>
         </section>
     </main>
 
+    <!-- NAVIGATION -->
     <nav class="fixed bottom-0 w-full h-20 border-t border-white/5 nav-blur flex items-center justify-around px-6 pb-2 z-50 text-white">
-        <button onclick="showTab('home')" class="nav-btn flex flex-col items-center gap-1 text-[#8b5cf6] transition-colors">
+        <button onclick="showTab('home')" class="nav-btn flex flex-col items-center gap-1 text-[#8b5cf6]">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-width="2"/></svg>
             <span class="text-[10px] font-bold uppercase tracking-widest">Home</span>
         </button>
-        <button onclick="showTab('utility')" class="nav-btn flex flex-col items-center gap-1 text-neutral-500 hover:text-[#8b5cf6] transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-width="2"/></svg>
-            <span class="text-[10px] font-bold uppercase tracking-widest">GUI</span>
+        <button onclick="showTab('utility')" class="nav-btn flex flex-col items-center gap-1 text-neutral-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-width="2"/></svg>
+            <span class="text-[10px] font-bold uppercase tracking-widest">Modules</span>
         </button>
-        <button onclick="showTab('pricing')" class="nav-btn flex flex-col items-center gap-1 text-neutral-500 hover:text-[#8b5cf6] transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/></svg>
-            <span class="text-[10px] font-bold uppercase tracking-widest">Buy</span>
+        <button onclick="showTab('apply')" class="nav-btn flex flex-col items-center gap-1 text-neutral-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/></svg>
+            <span class="text-[10px] font-bold uppercase tracking-widest">Apply</span>
         </button>
     </nav>
 
     <script>
-        // --- SUPABASE CONFIG ---
-        const SUPABASE_URL = 'https://tfxwsnsddqwojyzrxemd.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_CEnR0Y_yHyjMaVoLr8QgvQ_0dplRitn';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        let isLoginMode = false;
-
-        // --- AUTH FUNCTIONS ---
-        async function handleAuth() {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const btn = document.getElementById('auth-submit-btn');
-
-            if (!email || !password) return alert("Fill out all fields.");
-            
-            btn.innerText = "Processing...";
-            btn.disabled = true;
-
-            if (isLoginMode) {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) { 
-                    alert(error.message); 
-                    btn.innerText = "Login"; 
-                    btn.disabled = false; 
-                }
-            } else {
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
-                if (error) { 
-                    alert(error.message); 
-                    btn.innerText = "Create Account"; 
-                    btn.disabled = false; 
-                } else { 
-                    alert("Success! Please log in now."); 
-                    toggleAuthMode(); 
-                    btn.innerText = "Login"; 
-                    btn.disabled = false; 
-                }
-            }
-        }
-
-        async function handleLogout() {
-            await supabaseClient.auth.signOut();
-            window.location.reload();
-        }
-
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                document.getElementById('auth-overlay').classList.add('hidden');
-                document.body.style.overflow = 'auto';
-            } else {
-                document.getElementById('auth-overlay').classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            }
+        document.getElementById('app-proof').addEventListener('change', function() {
+            const fileName = this.files[0] ? this.files[0].name : "Click to upload proof";
+            document.getElementById('file-label').innerText = fileName;
         });
-
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? 'Login' : 'Create Account';
-            document.getElementById('auth-sub').innerText = isLoginMode ? 'Welcome back, member.' : 'Sign up to access BetterSociety modules.';
-            document.getElementById('auth-toggle-text').innerText = isLoginMode ? "Don't have an account?" : "Already have an account?";
-            document.getElementById('auth-toggle-btn').innerText = isLoginMode ? 'Sign Up' : 'Login';
-            document.getElementById('auth-submit-btn').innerText = isLoginMode ? 'Login' : 'Create Account';
-        }
-
-        function openModal() { document.getElementById('checkout-modal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('checkout-modal').style.display = 'none'; }
 
         function showTab(tabId) {
             const contents = document.querySelectorAll('.tab-content');
             const navBtns = document.querySelectorAll('.nav-btn');
             contents.forEach(t => t.classList.remove('active'));
-            const activeTab = document.getElementById(tabId);
-            void activeTab.offsetWidth; 
-            activeTab.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
             
-            navBtns.forEach(btn => {
-                btn.classList.replace('text-[#8b5cf6]', 'text-neutral-500');
-            });
-            event.currentTarget.classList.replace('text-neutral-500', 'text-[#8b5cf6]');
+            navBtns.forEach(btn => btn.classList.replace('text-[#8b5cf6]', 'text-neutral-500'));
+            const currentBtn = Array.from(navBtns).find(btn => btn.getAttribute('onclick').includes(tabId));
+            if (currentBtn) currentBtn.classList.replace('text-neutral-500', 'text-[#8b5cf6]');
         }
 
-        // --- MATRIX ANIMATION ---
+        async function submitApplication() {
+            const discord = document.getElementById('app-discord').value;
+            const skills = document.getElementById('app-skills').value;
+            const reason = document.getElementById('app-reason').value;
+            const proofFile = document.getElementById('app-proof').files[0];
+            const btn = document.getElementById('submit-btn');
+
+            if (!discord || !skills || !reason) {
+                return alert("Please fill out all text fields.");
+            }
+
+            const webhookURL = "https://discord.com/api/webhooks/1500328633951326269/0tGCZc0baL9MhFmIGIgqaVaZ7kFLzkc0aLuc_P_eacWRb0SOGcL0v70iVaCAk59DjCDr";
+            
+            const embedData = {
+                title: "New Membership Application (with Proof)",
+                color: 9133302,
+                fields: [
+                    { name: "Username", value: discord, inline: true },
+                    { name: "Skillset", value: skills, inline: true },
+                    { name: "Reason for Joining", value: reason },
+                    { name: "Agreed to Requirements", value: "Yes (Extortion exp + BS suffix)" }
+                ],
+                timestamp: new Date().toISOString(),
+                footer: { text: "BetterSociety | Web Portal" }
+            };
+
+            const formData = new FormData();
+            formData.append('payload_json', JSON.stringify({
+                username: "BetterSociety Recruiter",
+                embeds: [embedData]
+            }));
+
+            if (proofFile) {
+                formData.append('file', proofFile);
+            }
+
+            try {
+                btn.innerText = "Uploading...";
+                btn.disabled = true;
+
+                const response = await fetch(webhookURL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert("Application & Proof sent successfully!");
+                    document.getElementById('app-discord').value = "";
+                    document.getElementById('app-skills').value = "";
+                    document.getElementById('app-reason').value = "";
+                    document.getElementById('app-proof').value = "";
+                    document.getElementById('file-label').innerText = "Click to upload proof";
+                } else {
+                    throw new Error("Failed to send.");
+                }
+            } catch (error) {
+                alert("Error sending application. Please try again later.");
+            } finally {
+                btn.innerText = "Submit to Review";
+                btn.disabled = false;
+            }
+        }
+
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -353,6 +285,11 @@
             }
         }
         setInterval(drawMatrix, 45);
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
-</html>   
+</html>  
