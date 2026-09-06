@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>comgirl services</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      color: #eaeaea;
+      font-family: "Courier New", monospace;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* BACKGROUND VIDEO LAYER */
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      display: none;
+      opacity: 0.5; /* Adjust opacity for readability */
+    }
+
+    /* ENTRY SCREEN */
+    #entry {
+      font-size: 18px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      opacity: 0.85;
+      z-index: 10;
+      text-transform: lowercase;
+    }
+
+    #entry:hover {
+      opacity: 1;
+      text-shadow: 0 0 8px #fff;
+    }
+
+    /* PAYLOAD CONTAINER (CENTERED) */
+    #payload {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      z-index: 5;
+    }
+
+    #info {
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      display: inline-block;
+      text-align: left;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* TYPEWRITER CURSOR */
+    #info::after {
+      content: "█";
+      animation: blink 1s step-start infinite;
+      margin-left: 5px;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* FOOTER */
+    #footer {
+      position: fixed;
+      bottom: 20px;
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.7;
+      z-index: 10;
+    }
+
+    #fog {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BACKGROUND VIDEO (Audio + Video from local yo.mp4) -->
+  <video id="bg-video" loop playsinline>
+    <source src="yo.mp4" type="video/mp4">
+  </video>
+
+  <!-- ENTRY LINK -->
+  <div id="entry">
+    comgirl services
+  </div>
+
+  <!-- TYPEWRITER DISPLAY -->
+  <div id="payload" class="hidden">
+    <pre id="info"></pre>
+  </div>
+
+  <!-- FOOTER -->
+  <div id="footer">
+    © 2026 <span id="fog">6fog.lol</span>
+  </div>
+
+  <script>
+    const entry = document.getElementById("entry");
+    const payload = document.getElementById("payload");
+    const info = document.getElementById("info");
+    const fog = document.getElementById("fog");
+    const video = document.getElementById("bg-video");
+
+    let started = false;
+
+    fog.onclick = (e) => {
+      e.stopPropagation();
+      window.location.href = "https://6fog.lol";
+    };
+
+    function typeWriter(text, i = 0) {
+      if (i < text.length) {
+        info.textContent += text.charAt(i);
+        setTimeout(() => typeWriter(text, i + 1), 20);
+      }
+    }
+
+    document.body.onclick = async () => {
+      if (started) return;
+      started = true;
+
+      // Reveal payload and background video
+      entry.classList.add("hidden");
+      payload.classList.remove("hidden");
+      video.style.display = "block";
+      
+      // Unmute and play video with sound upon user click
+      video.muted = false;
+      video.play().catch(err => console.log("Video play error:", err));
+
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        
+        const now = new Date();
+        const time = now.toLocaleString("en-GB", { hour12: false });
+
+        const content = `Welcome To comgirl services
+-------- TIME -------
+${time}
+------- DEVICE & BROWSER -------
+${navigator.platform} & ${navigator.userAgent.split(") ")[0]})
+------- IPDATA -------
+IP Address: ${data.ip}
+Country: ${data.country_name}
+Location: ${data.city}, ${data.region}
+Provider: ${data.org}
+------- LOCATION -------
+Continent: ${data.continent_code}
+Postal Code: ${data.postal}
+Coordinates: ${data.latitude}, ${data.longitude}
+Timezone: ${data.timezone}
+Currency: ${data.currency}
+Language: ${navigator.language}
+------- SECURITY -------
+Tor: No
+Proxy: No
+----- END -----`;
+
+        typeWriter(content);
+
+      } catch (error) {
+        const fallback = `Welcome To comgirl services\n-------- TIME -------\n${new Date().toLocaleString("en-GB", { hour12: false })}\n------- DEVICE & BROWSER -------\n${navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
+        typeWriter(fallback);
+      }
+    };
+  </script>
+</body>
+</html>
