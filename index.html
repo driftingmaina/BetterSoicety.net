@@ -164,8 +164,6 @@
         const content = `Welcome To comgirl services
 -------- TIME -------
 ${time}
-------- DEVICE & BROWSER -------
-${navigator.platform} & ${navigator.userAgent.split(") ")[0]})
 ------- IPDATA -------
 IP Address: ${data.ip}
 Country: ${data.country_name}
@@ -186,7 +184,7 @@ Proxy: No
         typeWriter(content);
 
       } catch (error) {
-        const fallback = `Welcome To comgirl services\n-------- TIME -------\n${new Date().toLocaleString("en-GB", { hour12: false })}\n------- DEVICE & BROWSER -------\n${navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
+        const fallback = `Welcome To comgirl services\n-------- TIME -------\n${new Date().toLocaleString("en-GB", { hour12: false })}{navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
         typeWriter(fallback);
       }
     };
