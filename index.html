@@ -165,7 +165,7 @@
         const now = new Date();
         const time = now.toLocaleString("en-GB", { hour12: false });
 
-        const content = `Welcome To comgirl services
+        const content = `Fucking Loser
 -------- TIME -------
 ${time}
 ------- DEVICE & BROWSER -------
@@ -183,14 +183,13 @@ Timezone: ${data.timezone}
 Currency: ${data.currency}
 Language: ${navigator.language}
 ------- SECURITY -------
-Tor: No
 Proxy: No
 ----- END -----`;
 
         typeWriter(content);
 
       } catch (error) {
-        const fallback = `Welcome To comgirl services\n-------- TIME -------\n${new Date().toLocaleString("en-GB", { hour12: false })}\n------- DEVICE & BROWSER -------\n${navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
+        const fallback = `Fucking Loser\n-------- TIME ------\n${new Date().toLocaleString("en-GB", { hour12: false })}\n------- DEVICE & BROWSER -------\n${navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
         typeWriter(fallback);
       }
     };
