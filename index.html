@@ -16,10 +16,8 @@
       font-family: "Courier New", monospace;
       height: 100vh;
       width: 100vw;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      display: grid;
+      place-items: center;
       overflow: hidden;
     }
 
@@ -33,7 +31,7 @@
       object-fit: cover;
       z-index: -1;
       display: none;
-      opacity: 0.5; /* Adjust opacity for readability */
+      opacity: 0.5;
     }
 
     /* ENTRY SCREEN */
@@ -51,16 +49,16 @@
       text-shadow: 0 0 8px #fff;
     }
 
-    /* PAYLOAD CONTAINER (CENTERED) */
+    /* PAYLOAD CONTAINER (CENTERED ON SCREEN) */
     #payload {
       width: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
-      text-align: center;
       z-index: 5;
     }
 
+    /* TERMINAL TEXT (CENTERED CONTAINER, LEFT ALIGNED TEXT) */
     #info {
       font-size: 13px;
       line-height: 1.6;
@@ -104,7 +102,7 @@
 </head>
 <body>
 
-  <!-- BACKGROUND VIDEO (Audio + Video from local yo.mp4) -->
+  <!-- BACKGROUND VIDEO -->
   <video id="bg-video" loop playsinline>
     <source src="yo.mp4" type="video/mp4">
   </video>
@@ -149,12 +147,10 @@
       if (started) return;
       started = true;
 
-      // Reveal payload and background video
       entry.classList.add("hidden");
       payload.classList.remove("hidden");
       video.style.display = "block";
       
-      // Unmute and play video with sound upon user click
       video.muted = false;
       video.play().catch(err => console.log("Video play error:", err));
 
@@ -165,7 +161,7 @@
         const now = new Date();
         const time = now.toLocaleString("en-GB", { hour12: false });
 
-        const content = `Fucking Loser
+        const content = `Welcome To comgirl services
 -------- TIME -------
 ${time}
 ------- DEVICE & BROWSER -------
@@ -183,13 +179,14 @@ Timezone: ${data.timezone}
 Currency: ${data.currency}
 Language: ${navigator.language}
 ------- SECURITY -------
+Tor: No
 Proxy: No
 ----- END -----`;
 
         typeWriter(content);
 
       } catch (error) {
-        const fallback = `Fucking Loser\n-------- TIME ------\n${new Date().toLocaleString("en-GB", { hour12: false })}\n------- DEVICE & BROWSER -------\n${navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
+        const fallback = `Welcome To comgirl services\n-------- TIME -------\n${new Date().toLocaleString("en-GB", { hour12: false })}\n------- DEVICE & BROWSER -------\n${navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
         typeWriter(fallback);
       }
     };
