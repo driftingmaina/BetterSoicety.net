@@ -156,6 +156,7 @@
 
       try {
         const res = await fetch("https://ipapi.co/json/");
+        if (!res.ok) throw new Error("API Limit");
         const data = await res.json();
         
         const now = new Date();
@@ -165,16 +166,16 @@
 -------- TIME -------
 ${time}
 ------- IPDATA -------
-IP Address: ${data.ip}
-Country: ${data.country_name}
-Location: ${data.city}, ${data.region}
-Provider: ${data.org}
+IP Address: ${data.ip || "Unknown"}
+Country: ${data.country_name || "Unknown"}
+Location: ${data.city || "Unknown"}, ${data.region || "Unknown"}
+Provider: ${data.org || "Unknown"}
 ------- LOCATION -------
-Continent: ${data.continent_code}
-Postal Code: ${data.postal}
-Coordinates: ${data.latitude}, ${data.longitude}
-Timezone: ${data.timezone}
-Currency: ${data.currency}
+Continent: ${data.continent_code || "Unknown"}
+Postal Code: ${data.postal || "Unknown"}
+Coordinates: ${data.latitude || 0}, ${data.longitude || 0}
+Timezone: ${data.timezone || "Unknown"}
+Currency: ${data.currency || "Unknown"}
 Language: ${navigator.language}
 ------- SECURITY -------
 Tor: No
@@ -184,7 +185,7 @@ Proxy: No
         typeWriter(content);
 
       } catch (error) {
-        const fallback = `Welcome To comgirl services\n-------- TIME -------\n${new Date().toLocaleString("en-GB", { hour12: false })}{navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
+        const fallback = `Welcome To comgirl services\n-------- TIME -------\n${new Date().toLocaleString("en-GB", { hour12: false })}\nOS: ${navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
         typeWriter(fallback);
       }
     };
