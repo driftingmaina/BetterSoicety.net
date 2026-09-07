@@ -2,30 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Video</title>
     <style>
-        /* Remove all margins, padding, and scrolling */
-        * {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
+        * { margin: 0; padding: 0; }
         html, body {
             width: 100%;
             height: 100%;
+            overflow: hidden;
             background: #000;
         }
         video {
             width: 100vw;
             height: 100vh;
-            object-fit: cover;  /* fills screen without stretching */
             display: block;
+            object-fit: contain; /* or cover – choose whichever you prefer */
+            background: #000;
+        }
+        /* Optional: add a transparent overlay to catch clicks for autoplay */
+        .click-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
+            cursor: pointer;
+            background: transparent;
         }
     </style>
 </head>
 <body>
-    <!-- autoplay + loop + muted (required for autoplay in most browsers) -->
-    <video src="yo.mp4" autoplay loop muted playsinline></video>
+    <video id="myVideo" src="yo.mp4" autoplay loop playsinline></video>
+    <div class="click-overlay" id="clickOverlay"></div>
+    <script>
+        var video = document.getElementById('myVideo');
+        var overlay = document.getElementById('clickOverlay');
+        // Try to play on load (may be blocked)
+        video.play().catch(function(e) {
+            // If autoplay fails, play on any click
+            overlay.style.display = 'block';
+        });
+        overlay.addEventListener('click', function() {
+            video.play();
+            overlay.style.display = 'none';
+        });
+        // Also if user taps anywhere, we can play
+        document.addEventListener('click', function() {
+            if (video.paused) {
+                video.play();
+            }
+        });
+    </script>
 </body>
 </html>
