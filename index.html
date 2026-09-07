@@ -1,194 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>comgirl services</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #000;
-      color: #eaeaea;
-      font-family: "Courier New", monospace;
-      height: 100vh;
-      width: 100vw;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-    }
-
-    /* BACKGROUND VIDEO LAYER */
-    #bg-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
-      display: none;
-      opacity: 0.5;
-    }
-
-    /* ENTRY SCREEN */
-    #entry {
-      font-size: 18px;
-      letter-spacing: 2px;
-      cursor: pointer;
-      opacity: 0.85;
-      z-index: 10;
-      text-transform: lowercase;
-    }
-
-    #entry:hover {
-      opacity: 1;
-      text-shadow: 0 0 8px #fff;
-    }
-
-    /* PAYLOAD CONTAINER (CENTERED ON SCREEN) */
-    #payload {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 5;
-    }
-
-    /* TERMINAL TEXT (CENTERED CONTAINER, LEFT ALIGNED TEXT) */
-    #info {
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      display: inline-block;
-      text-align: left;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* TYPEWRITER CURSOR */
-    #info::after {
-      content: "█";
-      animation: blink 1s step-start infinite;
-      margin-left: 5px;
-    }
-
-    @keyframes blink {
-      50% { opacity: 0; }
-    }
-
-    /* FOOTER */
-    #footer {
-      position: fixed;
-      bottom: 20px;
-      text-align: center;
-      font-size: 11px;
-      opacity: 0.7;
-      z-index: 10;
-    }
-
-    #fog {
-      cursor: pointer;
-      text-decoration: underline;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video</title>
+    <style>
+        /* Remove all margins, padding, and scrolling */
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+        video {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;  /* fills screen without stretching */
+            display: block;
+        }
+    </style>
 </head>
 <body>
-
-  <!-- BACKGROUND VIDEO -->
-  <video id="bg-video" loop playsinline>
-    <source src="yo.mp4" type="video/mp4">
-  </video>
-
-  <!-- ENTRY LINK -->
-  <div id="entry">
-    comgirl services
-  </div>
-
-  <!-- TYPEWRITER DISPLAY -->
-  <div id="payload" class="hidden">
-    <pre id="info"></pre>
-  </div>
-
-  <!-- FOOTER -->
-  <div id="footer">
-    © 2026 <span id="fog">6fog.lol</span>
-  </div>
-
-  <script>
-    const entry = document.getElementById("entry");
-    const payload = document.getElementById("payload");
-    const info = document.getElementById("info");
-    const fog = document.getElementById("fog");
-    const video = document.getElementById("bg-video");
-
-    let started = false;
-
-    fog.onclick = (e) => {
-      e.stopPropagation();
-      window.location.href = "https://6fog.lol";
-    };
-
-    function typeWriter(text, i = 0) {
-      if (i < text.length) {
-        info.textContent += text.charAt(i);
-        setTimeout(() => typeWriter(text, i + 1), 20);
-      }
-    }
-
-    document.body.onclick = async () => {
-      if (started) return;
-      started = true;
-
-      entry.classList.add("hidden");
-      payload.classList.remove("hidden");
-      video.style.display = "block";
-      
-      video.muted = false;
-      video.play().catch(err => console.log("Video play error:", err));
-
-      try {
-        const res = await fetch("https://ipapi.co/json/");
-        if (!res.ok) throw new Error("API Limit");
-        const data = await res.json();
-        
-        const now = new Date();
-        const time = now.toLocaleString("en-GB", { hour12: false });
-
-        const content = `Welcome To comgirl services
--------- TIME -------
-${time}
-------- IPDATA -------
-IP Address: ${data.ip || "Unknown"}
-Country: ${data.country_name || "Unknown"}
-Location: ${data.city || "Unknown"}, ${data.region || "Unknown"}
-Provider: ${data.org || "Unknown"}
-------- LOCATION -------
-Continent: ${data.continent_code || "Unknown"}
-Postal Code: ${data.postal || "Unknown"}
-Coordinates: ${data.latitude || 0}, ${data.longitude || 0}
-Timezone: ${data.timezone || "Unknown"}
-Currency: ${data.currency || "Unknown"}
-Language: ${navigator.language}
-------- SECURITY -------
-Tor: No
-Proxy: No
------ END -----`;
-
-        typeWriter(content);
-
-      } catch (error) {
-        const fallback = `Welcome To comgirl services\n-------- TIME -------\n${new Date().toLocaleString("en-GB", { hour12: false })}\nOS: ${navigator.platform}\n------- STATUS -------\nOFFLINE MODE`;
-        typeWriter(fallback);
-      }
-    };
-  </script>
+    <!-- autoplay + loop + muted (required for autoplay in most browsers) -->
+    <video src="yo.mp4" autoplay loop muted playsinline></video>
 </body>
 </html>
