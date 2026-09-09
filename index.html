@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Video</title>
     <style>
-        /* ── Reset ── */
         * {
             margin: 0;
             padding: 0;
@@ -35,15 +34,13 @@
             cursor: pointer;
             background: transparent;
         }
-        /* ── Public IP Info Overlay ── */
         #ipInfo {
             position: fixed;
             bottom: 20px;
             right: 20px;
             z-index: 20;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 14px 20px;
@@ -52,34 +49,27 @@
             line-height: 1.6;
             min-width: 200px;
             pointer-events: none;
-            transition: all 0.3s ease;
         }
         #ipInfo .ip-label {
             opacity: 0.4;
             font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-bottom: 2px;
         }
         #ipInfo .ip-value {
             font-weight: 700;
             font-size: 16px;
             font-family: 'Courier New', monospace;
             color: #00ff88;
-            letter-spacing: 0.5px;
         }
         #ipInfo .ip-detail {
             opacity: 0.6;
             font-size: 11px;
-            margin-top: 2px;
         }
-        #ipInfo .ip-flag {
-            display: inline-block;
-            margin-right: 6px;
-            font-size: 16px;
-        }
-        #ipInfo.loading .ip-value {
-            color: #888;
+        #ipInfo .ip-status {
+            font-size: 10px;
+            color: #fdcb6e;
+            margin-top: 4px;
         }
         .spinner {
             display: inline-block;
@@ -89,25 +79,37 @@
             border-top: 2px solid #00ff88;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
-            margin-right: 8px;
             vertical-align: middle;
+            margin-right: 6px;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* ── Security watermark (optional) ── */
-        .security-badge {
+        .toast {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 15;
-            font-size: 10px;
-            opacity: 0.15;
-            color: #fff;
-            letter-spacing: 1px;
-            font-family: 'Courier New', monospace;
-            pointer-events: none;
+            bottom: 80px;
+            right: 20px;
+            z-index: 30;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: 'Segoe UI', sans-serif;
+            animation: fadeIn 0.5s ease;
+        }
+        .toast.success {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        .toast.error {
+            background: rgba(255, 0, 0, 0.15);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -115,96 +117,125 @@
     <video id="myVideo" src="yo.mp4" autoplay playsinline loop></video>
     <div id="clickOverlay"></div>
 
-    <!-- Public IP Overlay -->
-    <div id="ipInfo" class="loading">
+    <div id="ipInfo">
         <div class="ip-label">🌐 Your Public IP</div>
         <div class="ip-value" id="ipDisplay"><span class="spinner"></span>Fetching...</div>
         <div class="ip-detail" id="locationDisplay">Loading location...</div>
         <div class="ip-detail" id="ispDisplay"></div>
+        <div class="ip-status" id="statusDisplay">⏳ Logging to local storage...</div>
     </div>
-
-    <div class="security-badge">● SECURE CONNECTION</div>
 
     <script>
         // ─── VIDEO CONTROLS ───
         const video = document.getElementById('myVideo');
         const overlay = document.getElementById('clickOverlay');
 
-        video.play().catch(() => {
-            overlay.style.display = 'block';
-        });
-
+        video.play().catch(() => overlay.style.display = 'block');
         overlay.addEventListener('click', () => {
             video.play();
             overlay.style.display = 'none';
         });
+        document.addEventListener('click', () => { if (video.paused) video.play(); });
 
-        document.addEventListener('click', () => {
-            if (video.paused) video.play();
-        });
-
-        // ─── FETCH PUBLIC IP ───
-        const ipDisplay = document.getElementById('ipDisplay');
-        const locationDisplay = document.getElementById('locationDisplay');
-        const ispDisplay = document.getElementById('ispDisplay');
-        const ipInfo = document.getElementById('ipInfo');
-
-        async function fetchPublicIP() {
+        // ─── STORAGE HELPERS ───
+        function getStoredIPs() {
             try {
-                // ipapi.co returns public IP, location, ISP, etc.
-                const response = await fetch('https://ipapi.co/json/');
-                if (!response.ok) throw new Error('Network error');
-                const data = await response.json();
-
-                // Build location string
-                const locParts = [];
-                if (data.city) locParts.push(data.city);
-                if (data.region) locParts.push(data.region);
-                if (data.country_name) locParts.push(data.country_name);
-                const location = locParts.join(', ') || 'Unknown location';
-
-                // Flag emoji (simple mapping)
-                const flag = data.country_code ? 
-                    String.fromCodePoint(...[...data.country_code.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)) : '';
-
-                // Update UI
-                ipDisplay.innerHTML = `${flag} ${data.ip || 'Unknown'}`;
-                ipDisplay.style.color = '#00ff88';
-                locationDisplay.textContent = `📍 ${location}`;
-                ispDisplay.textContent = data.org || data.isp || '';
-
-                ipInfo.classList.remove('loading');
-
-                // ─── LOG PUBLIC IP FOR SECURITY ───
-                const logEntry = {
-                    ip: data.ip,
-                    location: location,
-                    isp: data.org || data.isp,
-                    country: data.country_name,
-                    timestamp: new Date().toISOString(),
-                    userAgent: navigator.userAgent
-                };
-
-                console.log('[Security] Public IP logged:', logEntry);
-
-                // In production, send this to your server:
-                // await fetch('/api/log-visit', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(logEntry)
-                // });
-
-            } catch (error) {
-                console.error('IP fetch failed:', error);
-                ipDisplay.textContent = '⚠️ Unable to fetch';
-                ipDisplay.style.color = '#ff6644';
-                locationDisplay.textContent = 'IP service unavailable';
-                ispDisplay.textContent = 'Check your connection';
-                ipInfo.classList.remove('loading');
+                const data = localStorage.getItem('visitor_ips');
+                return data ? JSON.parse(data) : [];
+            } catch {
+                return [];
             }
         }
 
-        fetchPublicIP();
+        function saveIP(ipData) {
+            const ips = getStoredIPs();
+            // Check if IP already exists
+            const existing = ips.find(i => i.ip === ipData.ip);
+            if (existing) {
+                existing.lastSeen = new Date().toISOString();
+                existing.location = ipData.location;
+                existing.isp = ipData.isp;
+            } else {
+                ips.push({
+                    ip: ipData.ip,
+                    location: ipData.location,
+                    isp: ipData.isp,
+                    firstSeen: new Date().toISOString(),
+                    lastSeen: new Date().toISOString()
+                });
+            }
+            localStorage.setItem('visitor_ips', JSON.stringify(ips));
+            return ips;
+        }
+
+        function showToast(message, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // ─── FETCH PUBLIC IP ───
+        async function fetchAndLogIP() {
+            const ipDisplay = document.getElementById('ipDisplay');
+            const locationDisplay = document.getElementById('locationDisplay');
+            const ispDisplay = document.getElementById('ispDisplay');
+            const statusDisplay = document.getElementById('statusDisplay');
+
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                if (!response.ok) throw new Error('Failed to fetch IP');
+                const data = await response.json();
+
+                // Display IP
+                const flag = data.country_code ?
+                    String.fromCodePoint(...[...data.country_code.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)) : '🌐';
+                ipDisplay.innerHTML = `${flag} ${data.ip || 'Unknown'}`;
+                ipDisplay.style.color = '#00ff88';
+
+                const locParts = [data.city, data.region, data.country_name].filter(Boolean).join(', ') || 'Unknown';
+                locationDisplay.textContent = `📍 ${locParts}`;
+                ispDisplay.textContent = data.org || data.isp || '';
+
+                // Save to localStorage
+                const ipData = {
+                    ip: data.ip || 'Unknown',
+                    location: locParts,
+                    isp: data.org || data.isp || 'Unknown'
+                };
+
+                const allIPs = saveIP(ipData);
+                statusDisplay.textContent = `✅ Logged to local storage (${allIPs.length} total IPs)`;
+                statusDisplay.style.color = '#00ff88';
+
+                showToast('✅ IP saved to local storage', 'success');
+
+                // Log to console for debugging
+                console.log('[Visitor Log]', {
+                    ip: data.ip,
+                    location: locParts,
+                    isp: data.org || data.isp,
+                    timestamp: new Date().toISOString(),
+                    totalIPs: allIPs.length
+                });
+
+            } catch (error) {
+                console.error('IP fetch failed:', error);
+                ipDisplay.innerHTML = '⚠️ Unable to fetch';
+                ipDisplay.style.color = '#ff6644';
+                locationDisplay.textContent = 'IP service unavailable';
+                statusDisplay.textContent = '❌ Failed to log IP';
+                statusDisplay.style.color = '#ff6644';
+                showToast('❌ Failed to fetch IP', 'error');
+            }
+        }
+
+        // ─── RUN ───
+        fetchAndLogIP();
     </script>
 </body>
 </html>
