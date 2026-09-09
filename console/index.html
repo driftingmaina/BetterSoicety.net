@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>comgirlservices › console</title>
+    <style>
+        /* ── Reset ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #c8c8d4;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 24px;
+            border-radius: 12px 12px 0 0;
+        }
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+        .header h1 span {
+            color: #6c5ce7;
+        }
+        .header .badge {
+            background: rgba(108, 92, 231, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #a29bfe;
+            border: 1px solid rgba(108, 92, 231, 0.2);
+        }
+        .header .badge .count {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* ── Stats ── */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .stat-card .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.4;
+        }
+        .stat-card .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 4px;
+        }
+        .stat-card .value.green { color: #00b894; }
+        .stat-card .value.red { color: #ff6b6b; }
+        .stat-card .value.yellow { color: #fdcb6e; }
+
+        /* ── Table ── */
+        .table-container {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        thead {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.5;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            vertical-align: middle;
+        }
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .ip-cell {
+            font-family: 'Courier New', monospace;
+            color: #81ecec;
+            font-size: 13px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .status-badge.green {
+            background: rgba(0, 184, 148, 0.2);
+            color: #00b894;
+        }
+        .status-badge.red {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+        .status-badge.yellow {
+            background: rgba(253, 203, 110, 0.2);
+            color: #fdcb6e;
+        }
+        .status-badge.gray {
+            background: rgba(255, 255, 255, 0.05);
+            color: #636e72;
+        }
+        .threat-score {
+            font-weight: 600;
+        }
+        .threat-score.high { color: #ff6b6b; }
+        .threat-score.medium { color: #fdcb6e; }
+        .threat-score.low { color: #00b894; }
+
+        .timestamp {
+            font-size: 11px;
+            opacity: 0.5;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            margin-top: 20px;
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 11px;
+            opacity: 0.3;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            table {
+                font-size: 11px;
+            }
+            th, td {
+                padding: 8px 10px;
+            }
+            .ip-cell {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── HEADER ─── -->
+    <div class="header">
+        <div>
+            <h1>⌨️ comgirlservices / <span>console</span></h1>
+        </div>
+        <div class="badge">
+            🛡️ <span class="count" id="ipCount">0</span> IPs monitored
+        </div>
+    </div>
+
+    <!-- ─── STATS ─── -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="label">Total IPs</div>
+            <div class="value" id="totalIPs">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">✅ Trusted</div>
+            <div class="value green" id="trustedCount">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">⚠️ Suspicious</div>
+            <div class="value yellow" id="suspiciousCount">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">🚫 Blocked</div>
+            <div class="value red" id="blockedCount">0</div>
+        </div>
+    </div>
+
+    <!-- ─── IP TABLE ─── -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>IP Address</th>
+                    <th>Location</th>
+                    <th>ISP</th>
+                    <th>Status</th>
+                    <th>Threat Score</th>
+                    <th>Last Seen</th>
+                </tr>
+            </thead>
+            <tbody id="ipTableBody">
+                <!-- Rows inserted by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        comgirlservices · security console · all access logged
+    </div>
+
+    <script>
+        // ─── SAMPLE IP DATA (in production, fetch from API/database) ───
+        // This would normally come from a backend endpoint:
+        // fetch('/api/security/ips').then(res => res.json())
+        const sampleIPs = [
+            {
+                ip: '192.168.1.100',
+                city: 'New York',
+                region: 'NY',
+                country: 'US',
+                isp: 'Comcast Cable',
+                status: 'trusted',
+                threatScore: 5,
+                lastSeen: '2025-01-15 14:32:21'
+            },
+            {
+                ip: '203.0.113.45',
+                city: 'London',
+                region: 'England',
+                country: 'UK',
+                isp: 'Sky Broadband',
+                status: 'suspicious',
+                threatScore: 45,
+                lastSeen: '2025-01-15 13:12:08'
+            },
+            {
+                ip: '198.51.100.78',
+                city: 'Tokyo',
+                region: 'Tokyo',
+                country: 'JP',
+                isp: 'NTT Communications',
+                status: 'blocked',
+                threatScore: 92,
+                lastSeen: '2025-01-15 10:45:33'
+            },
+            {
+                ip: '10.0.0.55',
+                city: 'San Francisco',
+                region: 'CA',
+                country: 'US',
+                isp: 'Local Network',
+                status: 'trusted',
+                threatScore: 2,
+                lastSeen: '2025-01-15 09:20:17'
+            },
+            {
+                ip: '172.16.0.12',
+                city: 'Berlin',
+                region: 'BE',
+                country: 'DE',
+                isp: 'Deutsche Telekom',
+                status: 'suspicious',
+                threatScore: 38,
+                lastSeen: '2025-01-14 22:15:44'
+            },
+            {
+                ip: '192.168.1.200',
+                city: 'Sydney',
+                region: 'NSW',
+                country: 'AU',
+                isp: 'Telstra',
+                status: 'trusted',
+                threatScore: 3,
+                lastSeen: '2025-01-14 20:01:29'
+            },
+            {
+                ip: '45.33.22.11',
+                city: 'Moscow',
+                region: 'MOW',
+                country: 'RU',
+                isp: 'Rostelecom',
+                status: 'blocked',
+                threatScore: 88,
+                lastSeen: '2025-01-14 18:50:02'
+            },
+            {
+                ip: '8.8.8.8',
+                city: 'Mountain View',
+                region: 'CA',
+                country: 'US',
+                isp: 'Google LLC',
+                status: 'trusted',
+                threatScore: 1,
+                lastSeen: '2025-01-14 16:30:15'
+            },
+        ];
+
+        // ─── RENDER TABLE ───
+        function renderIPs(ips) {
+            const tbody = document.getElementById('ipTableBody');
+            tbody.innerHTML = '';
+
+            ips.forEach(entry => {
+                const row = document.createElement('tr');
+
+                const statusColors = {
+                    trusted: 'green',
+                    suspicious: 'yellow',
+                    blocked: 'red'
+                };
+                const statusLabel = {
+                    trusted: '✅ Trusted',
+                    suspicious: '⚠️ Suspicious',
+                    blocked: '🚫 Blocked'
+                };
+                const threatClass = {
+                    trusted: 'low',
+                    suspicious: 'medium',
+                    blocked: 'high'
+                };
+
+                const location = [entry.city, entry.region, entry.country].filter(Boolean).join(', ') || 'Unknown';
+
+                row.innerHTML = `
+                    <td class="ip-cell">${entry.ip}</td>
+                    <td>${location}</td>
+                    <td>${entry.isp || 'Unknown'}</td>
+                    <td><span class="status-badge ${statusColors[entry.status]}">${statusLabel[entry.status]}</span></td>
+                    <td><span class="threat-score ${threatClass[entry.status]}">${entry.threatScore}%</span></td>
+                    <td class="timestamp">${entry.lastSeen}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update stats
+            const total = ips.length;
+            const trusted = ips.filter(i => i.status === 'trusted').length;
+            const suspicious = ips.filter(i => i.status === 'suspicious').length;
+            const blocked = ips.filter(i => i.status === 'blocked').length;
+
+            document.getElementById('totalIPs').textContent = total;
+            document.getElementById('trustedCount').textContent = trusted;
+            document.getElementById('suspiciousCount').textContent = suspicious;
+            document.getElementById('blockedCount').textContent = blocked;
+            document.getElementById('ipCount').textContent = total;
+        }
+
+        // ─── IN PRODUCTION: FETCH FROM API ───
+        // async function loadIPs() {
+        //     try {
+        //         const response = await fetch('/api/security/ips');
+        //         const data = await response.json();
+        //         renderIPs(data.ips);
+        //     } catch (error) {
+        //         console.error('Failed to load IPs:', error);
+        //         // Fallback to sample data
+        //         renderIPs(sampleIPs);
+        //     }
+        // }
+
+        // ─── LOAD ───
+        // Load sample data (in production, use loadIPs())
+        renderIPs(sampleIPs);
+
+        console.log('[Security Console] Loaded', sampleIPs.length, 'IPs');
+    </script>
+</body>
+</html>
