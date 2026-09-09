@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Video</title>
     <style>
-        /* Remove all margins, padding, scrollbars */
+        /* ── Reset ── */
         * {
             margin: 0;
             padding: 0;
@@ -25,7 +25,6 @@
             object-fit: contain;
             background: #000;
         }
-        /* Transparent overlay to catch first click */
         #clickOverlay {
             position: fixed;
             top: 0;
@@ -36,53 +35,60 @@
             cursor: pointer;
             background: transparent;
         }
-        /* IP info overlay - bottom right, glass effect */
+        /* ── Public IP Info Overlay ── */
         #ipInfo {
             position: fixed;
             bottom: 20px;
             right: 20px;
             z-index: 20;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
-            padding: 12px 18px;
+            padding: 14px 20px;
             color: #fff;
             font-size: 12px;
             line-height: 1.6;
-            min-width: 180px;
-            transition: all 0.3s ease;
+            min-width: 200px;
             pointer-events: none;
+            transition: all 0.3s ease;
         }
         #ipInfo .ip-label {
-            opacity: 0.5;
+            opacity: 0.4;
             font-size: 9px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            margin-bottom: 2px;
         }
         #ipInfo .ip-value {
-            font-weight: 600;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 16px;
             font-family: 'Courier New', monospace;
             color: #00ff88;
+            letter-spacing: 0.5px;
         }
         #ipInfo .ip-detail {
-            opacity: 0.7;
+            opacity: 0.6;
             font-size: 11px;
+            margin-top: 2px;
         }
-        #ipInfo.loading {
-            opacity: 0.5;
+        #ipInfo .ip-flag {
+            display: inline-block;
+            margin-right: 6px;
+            font-size: 16px;
         }
-        /* Loading spinner for IP */
+        #ipInfo.loading .ip-value {
+            color: #888;
+        }
         .spinner {
             display: inline-block;
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-top: 2px solid #00ff88;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.7s linear infinite;
             margin-right: 8px;
             vertical-align: middle;
         }
@@ -90,26 +96,40 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* ── Security watermark (optional) ── */
+        .security-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 15;
+            font-size: 10px;
+            opacity: 0.15;
+            color: #fff;
+            letter-spacing: 1px;
+            font-family: 'Courier New', monospace;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <video id="myVideo" src="yo.mp4" autoplay playsinline loop></video>
     <div id="clickOverlay"></div>
 
-    <!-- IP Info Overlay -->
+    <!-- Public IP Overlay -->
     <div id="ipInfo" class="loading">
-        <div class="ip-label">Your Location Info</div>
+        <div class="ip-label">🌐 Your Public IP</div>
         <div class="ip-value" id="ipDisplay"><span class="spinner"></span>Fetching...</div>
         <div class="ip-detail" id="locationDisplay">Loading location...</div>
         <div class="ip-detail" id="ispDisplay"></div>
     </div>
 
+    <div class="security-badge">● SECURE CONNECTION</div>
+
     <script>
-        // ---------- VIDEO CONTROLS ----------
+        // ─── VIDEO CONTROLS ───
         const video = document.getElementById('myVideo');
         const overlay = document.getElementById('clickOverlay');
 
-        // Try to autoplay (may be blocked by browser)
         video.play().catch(() => {
             overlay.style.display = 'block';
         });
@@ -120,58 +140,71 @@
         });
 
         document.addEventListener('click', () => {
-            if (video.paused) {
-                video.play();
-            }
+            if (video.paused) video.play();
         });
 
-        // ---------- IP API INTEGRATION ----------
+        // ─── FETCH PUBLIC IP ───
         const ipDisplay = document.getElementById('ipDisplay');
         const locationDisplay = document.getElementById('locationDisplay');
         const ispDisplay = document.getElementById('ispDisplay');
         const ipInfo = document.getElementById('ipInfo');
 
-        async function fetchIPInfo() {
+        async function fetchPublicIP() {
             try {
-                // Using ipapi.co (free, no API key required)
+                // ipapi.co returns public IP, location, ISP, etc.
                 const response = await fetch('https://ipapi.co/json/');
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) throw new Error('Network error');
                 const data = await response.json();
 
+                // Build location string
+                const locParts = [];
+                if (data.city) locParts.push(data.city);
+                if (data.region) locParts.push(data.region);
+                if (data.country_name) locParts.push(data.country_name);
+                const location = locParts.join(', ') || 'Unknown location';
+
+                // Flag emoji (simple mapping)
+                const flag = data.country_code ? 
+                    String.fromCodePoint(...[...data.country_code.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)) : '';
+
                 // Update UI
-                ipDisplay.textContent = data.ip || 'Unknown';
+                ipDisplay.innerHTML = `${flag} ${data.ip || 'Unknown'}`;
                 ipDisplay.style.color = '#00ff88';
-
-                const locationParts = [];
-                if (data.city) locationParts.push(data.city);
-                if (data.region) locationParts.push(data.region);
-                if (data.country_name) locationParts.push(data.country_name);
-                if (data.postal) locationParts.push(data.postal);
-
-                locationDisplay.textContent = locationParts.join(', ') || 'Location unknown';
+                locationDisplay.textContent = `📍 ${location}`;
                 ispDisplay.textContent = data.org || data.isp || '';
 
                 ipInfo.classList.remove('loading');
 
-                // Log for security (in a real app, send to server)
-                console.log('[Security] IP logged:', {
+                // ─── LOG PUBLIC IP FOR SECURITY ───
+                const logEntry = {
                     ip: data.ip,
-                    location: locationParts.join(', '),
-                    isp: data.org,
-                    timestamp: new Date().toISOString()
-                });
+                    location: location,
+                    isp: data.org || data.isp,
+                    country: data.country_name,
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent
+                };
+
+                console.log('[Security] Public IP logged:', logEntry);
+
+                // In production, send this to your server:
+                // await fetch('/api/log-visit', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify(logEntry)
+                // });
 
             } catch (error) {
                 console.error('IP fetch failed:', error);
                 ipDisplay.textContent = '⚠️ Unable to fetch';
                 ipDisplay.style.color = '#ff6644';
                 locationDisplay.textContent = 'IP service unavailable';
+                ispDisplay.textContent = 'Check your connection';
                 ipInfo.classList.remove('loading');
             }
         }
 
-        // Fetch IP info on load
-        fetchIPInfo();
+        fetchPublicIP();
     </script>
 </body>
 </html>
