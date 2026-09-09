@@ -100,11 +100,7 @@
         .empty-state { text-align: center; opacity: 0.4; padding: 40px; }
         .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
         .empty-state .title { font-size: 18px; color: #fff; margin-bottom: 8px; }
-        .refresh-indicator {
-            font-size: 11px;
-            opacity: 0.3;
-            margin-left: 8px;
-        }
+        .refresh-indicator { font-size: 11px; opacity: 0.3; margin-left: 8px; }
         @media (max-width: 768px) {
             body { padding: 12px; }
             .header { padding: 12px 16px; }
@@ -119,7 +115,7 @@
     <div class="header">
         <div><h1>⌨️ comgirlservices / <span>console</span></h1></div>
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <span class="badge">🐙 <span class="count" id="ipCount">0</span> visitors logged</span>
+            <span class="badge">🗄️ <span class="count" id="ipCount">0</span> visitors logged</span>
             <button class="refresh-btn" onclick="loadIPs()">⟳ Refresh</button>
             <span class="refresh-indicator" id="refreshTime">Last updated: -</span>
         </div>
@@ -135,79 +131,57 @@
     <div class="table-container">
         <table>
             <thead>
-                <tr><th>IP Address</th><th>Location</th><th>ISP</th><th>Issue #</th><th>Timestamp</th></tr>
+                <tr><th>IP Address</th><th>Location</th><th>ISP</th><th>Timestamp</th></tr>
             </thead>
             <tbody id="ipTableBody">
-                <tr><td colspan="5" class="loading-text">Loading visitors from GitHub Issues...</td></tr>
+                <tr><td colspan="4" class="loading-text">Loading visitors from Supabase...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <div class="footer">comgirlservices · security console · all IPs stored in GitHub Issues</div>
+    <div class="footer">comgirlservices · security console · all IPs stored in Supabase</div>
+
+    <!-- Load Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         // ============================================================
-        // YOUR REPO INFO
+        // YOUR SUPABASE CONFIG
         // ============================================================
-        const GITHUB_REPO = 'mania828/BetterSoicety.net';
+        const SUPABASE_URL = 'https://-8fYPUmjvAw309BWUoRtDg.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_-8fYPUmjvAw309BWUoRtDg_rGy6gfsw';
         // ============================================================
 
-        let cachedData = [];
+        // ─── INITIALIZE SUPABASE ───
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-        // ─── FETCH ALL ISSUES FROM GITHUB ───
-        async function fetchGitHubIssues() {
+        // ─── FETCH VISITORS FROM SUPABASE ───
+        async function fetchVisitors() {
             try {
-                const response = await fetch(
-                    `https://api.github.com/repos/${GITHUB_REPO}/issues?labels=visitor,security-log&state=all&per_page=100&sort=created&direction=desc`,
-                    {
-                        headers: {
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    }
-                );
+                const { data, error } = await supabase
+                    .from('visitors')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(100);
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                if (error) {
+                    throw new Error(`Supabase error: ${error.message}`);
                 }
 
-                const issues = await response.json();
-                return issues;
+                return data || [];
             } catch (error) {
-                console.error('Failed to fetch issues:', error);
+                console.error('Failed to fetch visitors:', error);
                 throw error;
             }
         }
 
-        // ─── PARSE ISSUES INTO IP DATA ───
-        function parseIssuesToIPs(issues) {
-            return issues.map(issue => {
-                // Extract IP from title: "Visitor: 123.45.67.89"
-                const ipMatch = issue.title.match(/Visitor: ([\d.]+)/);
-                const ip = ipMatch ? ipMatch[1] : 'Unknown';
-
-                // Extract location and ISP from body
-                const body = issue.body || '';
-                const locationMatch = body.match(/\|\*\*Location\*\* \| (.*?)\n/);
-                const ispMatch = body.match(/\|\*\*ISP\*\* \| (.*?)\n/);
-
-                return {
-                    ip: ip,
-                    location: locationMatch ? locationMatch[1].trim() : 'Unknown',
-                    isp: ispMatch ? ispMatch[1].trim() : 'Unknown',
-                    issueNumber: issue.number,
-                    timestamp: issue.created_at,
-                    issueUrl: issue.html_url
-                };
-            });
-        }
-
         // ─── RENDER TABLE ───
-        function renderTable(ips) {
+        function renderTable(visitors) {
             const tbody = document.getElementById('ipTableBody');
 
-            if (ips.length === 0) {
+            if (!visitors || visitors.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="5">
+                    <tr><td colspan="4">
                         <div class="empty-state">
                             <div class="icon">📭</div>
                             <div class="title">No visitors logged yet</div>
@@ -219,16 +193,15 @@
             }
 
             tbody.innerHTML = '';
-            ips.forEach(entry => {
+            visitors.forEach(entry => {
                 const row = document.createElement('tr');
                 const flag = '🌐';
                 const date = new Date(entry.timestamp);
 
                 row.innerHTML = `
                     <td class="ip-cell"><span class="flag-icon">${flag}</span> ${entry.ip}</td>
-                    <td>${entry.location}</td>
-                    <td>${entry.isp}</td>
-                    <td><a href="${entry.issueUrl}" target="_blank" style="color:#a29bfe; text-decoration:none;">#${entry.issueNumber}</a></td>
+                    <td>${entry.location || 'Unknown'}</td>
+                    <td>${entry.isp || 'Unknown'}</td>
                     <td class="timestamp">${date.toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
                 `;
                 tbody.appendChild(row);
@@ -236,11 +209,11 @@
         }
 
         // ─── UPDATE STATS ───
-        function updateStats(ips) {
-            const total = ips.length;
-            const unique = new Set(ips.map(i => i.ip)).size;
-            const today = ips.filter(i => {
-                const date = new Date(i.timestamp);
+        function updateStats(visitors) {
+            const total = visitors.length;
+            const unique = new Set(visitors.map(v => v.ip)).size;
+            const today = visitors.filter(v => {
+                const date = new Date(v.timestamp);
                 const now = new Date();
                 return date.getDate() === now.getDate() &&
                        date.getMonth() === now.getMonth() &&
@@ -252,9 +225,8 @@
             document.getElementById('todayCount').textContent = today;
             document.getElementById('ipCount').textContent = total;
 
-            if (ips.length > 0) {
-                const sorted = [...ips].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                document.getElementById('recentIP').textContent = sorted[0].ip;
+            if (visitors.length > 0) {
+                document.getElementById('recentIP').textContent = visitors[0].ip;
                 document.getElementById('recentIP').style.color = '#00ff88';
             } else {
                 document.getElementById('recentIP').textContent = '-';
@@ -267,25 +239,21 @@
         // ─── LOAD IPs ───
         async function loadIPs() {
             const tbody = document.getElementById('ipTableBody');
-            tbody.innerHTML = `<tr><td colspan="5" class="loading-text">Loading visitors from GitHub Issues...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" class="loading-text">Loading visitors from Supabase...</td></tr>`;
 
             try {
-                const issues = await fetchGitHubIssues();
-                const ipData = parseIssuesToIPs(issues);
-                cachedData = ipData;
-                renderTable(ipData);
-                updateStats(ipData);
-
-                console.log(`[+] Loaded ${ipData.length} visitors from GitHub Issues`);
-
+                const visitors = await fetchVisitors();
+                renderTable(visitors);
+                updateStats(visitors);
+                console.log(`[+] Loaded ${visitors.length} visitors from Supabase`);
             } catch (error) {
                 tbody.innerHTML = `
-                    <tr><td colspan="5" style="text-align:center; opacity:0.4; padding:30px;">
+                    <tr><td colspan="4" style="text-align:center; opacity:0.4; padding:30px;">
                         ❌ Failed to load visitors: ${error.message}<br>
-                        <small>Make sure the repo exists and issues are public</small>
+                        <small>Make sure the 'visitors' table exists in Supabase</small>
                     </td></tr>
                 `;
-                console.error('Failed to load IPs:', error);
+                console.error('Failed to load visitors:', error);
             }
         }
 
@@ -295,8 +263,8 @@
         // ─── LOAD ON START ───
         loadIPs();
 
-        console.log('[Security Console] Monitoring visitors via GitHub Issues');
-        console.log(`[Security Console] Repo: ${GITHUB_REPO}`);
+        console.log('[Security Console] Monitoring visitors via Supabase');
+        console.log(`[Security Console] Supabase URL: ${SUPABASE_URL}`);
     </script>
 </body>
 </html>
