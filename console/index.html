@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>comgirlservices › security console</title>
+    <title>comgirlservices › console</title>
     <style>
-        /* ── Reset ── */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #0a0a0f;
@@ -18,8 +13,6 @@
             min-height: 100vh;
             padding: 20px;
         }
-
-        /* ── Header ── */
         .header {
             display: flex;
             justify-content: space-between;
@@ -38,9 +31,7 @@
             letter-spacing: 0.5px;
             color: #fff;
         }
-        .header h1 span {
-            color: #6c5ce7;
-        }
+        .header h1 span { color: #6c5ce7; }
         .header .badge {
             background: rgba(108, 92, 231, 0.2);
             padding: 4px 14px;
@@ -49,12 +40,7 @@
             color: #a29bfe;
             border: 1px solid rgba(108, 92, 231, 0.2);
         }
-        .header .badge .count {
-            color: #fff;
-            font-weight: 600;
-        }
-
-        /* ── Stats ── */
+        .header .badge .count { color: #fff; font-weight: 600; }
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -82,8 +68,7 @@
         .stat-card .value.green { color: #00b894; }
         .stat-card .value.red { color: #ff6b6b; }
         .stat-card .value.yellow { color: #fdcb6e; }
-
-        /* ── Table ── */
+        .stat-card .value.blue { color: #74b9ff; }
         .table-container {
             background: rgba(255, 255, 255, 0.02);
             border-radius: 12px;
@@ -96,9 +81,7 @@
             font-size: 13px;
             min-width: 600px;
         }
-        thead {
-            background: rgba(255, 255, 255, 0.04);
-        }
+        thead { background: rgba(255, 255, 255, 0.04); }
         th {
             text-align: left;
             padding: 12px 16px;
@@ -113,15 +96,15 @@
             padding: 12px 16px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         }
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
         .ip-cell {
             font-family: 'Courier New', monospace;
             color: #81ecec;
             font-size: 13px;
             font-weight: 600;
         }
+        .flag-icon { font-size: 18px; margin-right: 4px; vertical-align: middle; }
+        .timestamp { font-size: 11px; opacity: 0.5; font-family: 'Courier New', monospace; }
         .status-badge {
             display: inline-block;
             padding: 2px 12px;
@@ -131,29 +114,10 @@
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
-        .status-badge.trusted {
-            background: rgba(0, 184, 148, 0.2);
-            color: #00b894;
+        .status-badge.local {
+            background: rgba(108, 92, 231, 0.2);
+            color: #a29bfe;
         }
-        .status-badge.suspicious {
-            background: rgba(253, 203, 110, 0.2);
-            color: #fdcb6e;
-        }
-        .status-badge.blocked {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-        }
-        .flag-icon {
-            font-size: 18px;
-            margin-right: 4px;
-            vertical-align: middle;
-        }
-        .timestamp {
-            font-size: 11px;
-            opacity: 0.5;
-            font-family: 'Courier New', monospace;
-        }
-
         .footer {
             margin-top: 20px;
             padding: 12px 16px;
@@ -162,8 +126,6 @@
             opacity: 0.3;
             letter-spacing: 0.5px;
         }
-
-        /* ── Refresh button ── */
         .refresh-btn {
             background: rgba(108, 92, 231, 0.15);
             border: 1px solid rgba(108, 92, 231, 0.2);
@@ -174,10 +136,27 @@
             font-size: 11px;
             transition: all 0.3s;
         }
-        .refresh-btn:hover {
-            background: rgba(108, 92, 231, 0.25);
+        .refresh-btn:hover { background: rgba(108, 92, 231, 0.25); }
+        .loading-text { text-align: center; opacity: 0.4; padding: 30px; }
+        .empty-state {
+            text-align: center;
+            opacity: 0.4;
+            padding: 40px;
         }
-
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state .title { font-size: 18px; color: #fff; margin-bottom: 8px; }
+        .empty-state .sub { font-size: 13px; }
+        .clear-btn {
+            background: rgba(255, 107, 107, 0.15);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+        .clear-btn:hover { background: rgba(255, 107, 107, 0.25); }
         @media (max-width: 768px) {
             body { padding: 12px; }
             .header { padding: 12px 16px; }
@@ -189,149 +168,147 @@
     </style>
 </head>
 <body>
-
-    <!-- ─── HEADER ─── -->
     <div class="header">
-        <div>
-            <h1>⌨️ comgirlservices / <span>console</span></h1>
-        </div>
+        <div><h1>⌨️ comgirlservices / <span>console</span></h1></div>
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <span class="badge">🛡️ <span class="count" id="ipCount">0</span> public IPs</span>
+            <span class="badge">💾 <span class="count" id="ipCount">0</span> IPs in localStorage</span>
             <button class="refresh-btn" onclick="loadIPs()">⟳ Refresh</button>
+            <button class="clear-btn" onclick="clearIPs()">🗑️ Clear All</button>
         </div>
     </div>
 
-    <!-- ─── STATS ─── -->
     <div class="stats">
-        <div class="stat-card">
-            <div class="label">Total Public IPs</div>
-            <div class="value" id="totalIPs">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">✅ Trusted</div>
-            <div class="value green" id="trustedCount">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">⚠️ Suspicious</div>
-            <div class="value yellow" id="suspiciousCount">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">🚫 Blocked</div>
-            <div class="value red" id="blockedCount">0</div>
-        </div>
+        <div class="stat-card"><div class="label">Total IPs</div><div class="value blue" id="totalIPs">0</div></div>
+        <div class="stat-card"><div class="label">Unique IPs</div><div class="value green" id="uniqueIPs">0</div></div>
+        <div class="stat-card"><div class="label">Today's Visits</div><div class="value yellow" id="todayCount">0</div></div>
+        <div class="stat-card"><div class="label">Most Recent</div><div class="value" id="recentIP" style="font-size:16px; font-family:'Courier New',monospace;">-</div></div>
     </div>
 
-    <!-- ─── IP TABLE ─── -->
     <div class="table-container">
         <table>
             <thead>
-                <tr>
-                    <th>Public IP</th>
-                    <th>Location</th>
-                    <th>ISP</th>
-                    <th>Status</th>
-                    <th>Last Seen</th>
-                </tr>
+                <tr><th>IP Address</th><th>Location</th><th>ISP</th><th>First Seen</th><th>Last Seen</th></tr>
             </thead>
             <tbody id="ipTableBody">
-                <tr><td colspan="5" style="text-align:center; opacity:0.4; padding:30px;">Loading IPs...</td></tr>
+                <tr><td colspan="5" class="loading-text">Loading IPs from localStorage...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <div class="footer">
-        comgirlservices · security console · all public IPs logged
-    </div>
+    <div class="footer">comgirlservices · security console · all IPs stored locally in your browser</div>
 
     <script>
-        // ─── PUBLIC IP DATA ───
-        // In production, this would be fetched from your backend API
-        // which stores the public IPs collected from visitors.
-
-        let ipData = [];
-
-        async function loadIPs() {
-            // ─── FOR DEMO: Generate sample public IPs ───
-            // In production, replace with:
-            // const response = await fetch('/api/security/ips');
-            // ipData = await response.json();
-
-            // Simulate public IPs (random for demo)
-            const publicIPs = [
-                { ip: '203.0.113.42', city: 'New York', region: 'NY', country: 'US', countryCode: 'US', isp: 'Comcast Cable', status: 'trusted', lastSeen: '2025-01-15 14:32:21' },
-                { ip: '198.51.100.78', city: 'London', region: 'England', country: 'UK', countryCode: 'GB', isp: 'Sky Broadband', status: 'suspicious', lastSeen: '2025-01-15 13:12:08' },
-                { ip: '45.33.22.11', city: 'Moscow', region: 'MOW', country: 'Russia', countryCode: 'RU', isp: 'Rostelecom', status: 'blocked', lastSeen: '2025-01-15 10:45:33' },
-                { ip: '8.8.8.8', city: 'Mountain View', region: 'CA', country: 'USA', countryCode: 'US', isp: 'Google LLC', status: 'trusted', lastSeen: '2025-01-14 16:30:15' },
-                { ip: '104.28.12.95', city: 'Frankfurt', region: 'HE', country: 'Germany', countryCode: 'DE', isp: 'Cloudflare', status: 'trusted', lastSeen: '2025-01-14 14:22:09' },
-                { ip: '185.165.29.12', city: 'Amsterdam', region: 'NH', country: 'Netherlands', countryCode: 'NL', isp: 'Leaseweb', status: 'suspicious', lastSeen: '2025-01-13 22:01:44' },
-                { ip: '94.23.45.67', city: 'Paris', region: 'IDF', country: 'France', countryCode: 'FR', isp: 'OVH', status: 'blocked', lastSeen: '2025-01-13 18:50:02' },
-                { ip: '172.217.14.206', city: 'Sydney', region: 'NSW', country: 'Australia', countryCode: 'AU', isp: 'Google Australia', status: 'trusted', lastSeen: '2025-01-13 12:15:33' },
-                { ip: '13.107.4.52', city: 'Seattle', region: 'WA', country: 'USA', countryCode: 'US', isp: 'Microsoft Azure', status: 'trusted', lastSeen: '2025-01-12 09:20:17' },
-                { ip: '190.2.3.4', city: 'Buenos Aires', region: 'B', country: 'Argentina', countryCode: 'AR', isp: 'Telecom Argentina', status: 'suspicious', lastSeen: '2025-01-11 20:15:44' },
-            ];
-
-            ipData = publicIPs;
-            renderTable(ipData);
+        // ─── STORAGE HELPERS ───
+        function getStoredIPs() {
+            try {
+                const data = localStorage.getItem('visitor_ips');
+                return data ? JSON.parse(data) : [];
+            } catch {
+                return [];
+            }
         }
 
-        // ─── RENDER TABLE ───
-        function renderTable(ips) {
+        function saveIPs(ips) {
+            localStorage.setItem('visitor_ips', JSON.stringify(ips));
+        }
+
+        function clearIPs() {
+            if (confirm('⚠️ Delete all stored IPs?')) {
+                localStorage.removeItem('visitor_ips');
+                loadIPs();
+                showToast('🗑️ All IPs cleared', 'info');
+            }
+        }
+
+        function showToast(message, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ─── LOAD AND DISPLAY IPs ───
+        function loadIPs() {
             const tbody = document.getElementById('ipTableBody');
-            if (!ips || ips.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; opacity:0.4; padding:30px;">No IPs logged yet</td></tr>`;
+            const ips = getStoredIPs();
+
+            if (ips.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="5">
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <div class="title">No IPs logged yet</div>
+                            <div class="sub">Visit the video page to log your IP</div>
+                        </div>
+                    </td></tr>
+                `;
+                updateStats(ips);
                 return;
             }
 
+            // Sort by lastSeen (newest first)
+            const sorted = [...ips].sort((a, b) => 
+                new Date(b.lastSeen) - new Date(a.lastSeen)
+            );
+
             tbody.innerHTML = '';
-
-            const statusLabels = {
-                trusted: '✅ Trusted',
-                suspicious: '⚠️ Suspicious',
-                blocked: '🚫 Blocked'
-            };
-
-            const statusColors = {
-                trusted: 'trusted',
-                suspicious: 'suspicious',
-                blocked: 'blocked'
-            };
-
-            ips.forEach(entry => {
+            sorted.forEach(entry => {
                 const row = document.createElement('tr');
-
-                // Flag emoji
-                const flag = entry.countryCode ?
-                    String.fromCodePoint(...[...entry.countryCode.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)) : '🌐';
-
-                const location = [entry.city, entry.region, entry.country].filter(Boolean).join(', ') || 'Unknown';
+                const flag = '🌐';
+                const firstSeen = new Date(entry.firstSeen);
+                const lastSeen = new Date(entry.lastSeen);
 
                 row.innerHTML = `
                     <td class="ip-cell"><span class="flag-icon">${flag}</span> ${entry.ip}</td>
-                    <td>${location}</td>
+                    <td>${entry.location || 'Unknown'}</td>
                     <td>${entry.isp || 'Unknown'}</td>
-                    <td><span class="status-badge ${statusColors[entry.status] || 'suspicious'}">${statusLabels[entry.status] || 'Unknown'}</span></td>
-                    <td class="timestamp">${entry.lastSeen}</td>
+                    <td class="timestamp">${firstSeen.toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td class="timestamp">${lastSeen.toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                 `;
                 tbody.appendChild(row);
             });
 
-            // Update stats
+            updateStats(ips);
+        }
+
+        function updateStats(ips) {
             const total = ips.length;
-            const trusted = ips.filter(i => i.status === 'trusted').length;
-            const suspicious = ips.filter(i => i.status === 'suspicious').length;
-            const blocked = ips.filter(i => i.status === 'blocked').length;
+            const unique = new Set(ips.map(i => i.ip)).size;
+            const today = ips.filter(i => {
+                const date = new Date(i.lastSeen);
+                const now = new Date();
+                return date.getDate() === now.getDate() &&
+                       date.getMonth() === now.getMonth() &&
+                       date.getFullYear() === now.getFullYear();
+            }).length;
 
             document.getElementById('totalIPs').textContent = total;
-            document.getElementById('trustedCount').textContent = trusted;
-            document.getElementById('suspiciousCount').textContent = suspicious;
-            document.getElementById('blockedCount').textContent = blocked;
+            document.getElementById('uniqueIPs').textContent = unique;
+            document.getElementById('todayCount').textContent = today;
             document.getElementById('ipCount').textContent = total;
+
+            if (ips.length > 0) {
+                const sorted = [...ips].sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen));
+                document.getElementById('recentIP').textContent = sorted[0].ip;
+                document.getElementById('recentIP').style.color = '#00ff88';
+            } else {
+                document.getElementById('recentIP').textContent = '-';
+                document.getElementById('recentIP').style.color = '#c8c8d4';
+            }
         }
+
+        // ─── AUTO-REFRESH EVERY 10 SECONDS ───
+        setInterval(loadIPs, 10000);
 
         // ─── LOAD ON START ───
         loadIPs();
 
-        console.log('[Security Console] Public IP monitoring active');
+        // ─── LOG ───
+        console.log('[Security Console] Local storage monitoring active');
+        console.log('[Security Console] Total IPs:', getStoredIPs().length);
     </script>
 </body>
 </html>
